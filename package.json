@@ -1,0 +1,16 @@
+{
+  "name": "ru203",
+  "version": "1.0.0",
+  "description": "This repository contains example data and setup instructions for the Redis University course [RU203: Querying, Indexing, and Full-Text Search with Redis](https://university.redis.com/courses/ru203/).",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "rdcli": "node_modules\\.bin\\rdcli"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "redis-cli": "^2.1.2"
+  }
+}
