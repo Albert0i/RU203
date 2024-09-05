@@ -111,12 +111,12 @@ You can use Boolean logic to express complex queries. Let's look at a few exampl
 
 Many of the queries in this section use full-text search because this type of query makes boolean logic simple to illustrate.
 
-Queries that don’t use a specific field default to full-text search using all TEXT fields. So, consider again the following query, taken from the last video:
+Queries that don’t use a specific field default to full-text search using all `TEXT` fields. So, consider again the following query, taken from the last video:
 ```
 FT.SEARCH books-idx "dogs|cats"
 ```
 
-This query searches for dogs OR cats in all TEXT fields in the index.
+This query searches for dogs OR cats in all `TEXT` fields in the index.
 
 For now, don’t worry about exactly how full-text search works. Focus on the boolean logic, and we’ll tell you all about full-text search in the next section.
 
@@ -158,7 +158,7 @@ FT.SEARCH books-idx "@authors:'Arthur Koestler' | @authors:'Michel Foucault'"
 
 9. [Sorting Results](https://youtu.be/UpCUKPbCn3U)
 
-Start of transcript. Skip to the end. To sort query results, you first need a sortable field in the index. Here's an example from our books index. As you can see, several fields in this index are sortable. This index lets us sort by the title, publication year, average rating and more. Once you have a sortable field, you can sort results by adding this SORTBY option to your query. Here, I'm looking for history books published since 1980, inclusive. I want the results sorted by year of publication, ascending. Now it's your turn to try sorting a few queries in our hands on.
+To sort query results, you first need a `SORTABLE` field in the index. Here's an example from our books index. As you can see, several fields in this index are sortable. This index lets us sort by the title, publication year, average rating and more. Once you have a sortable field, you can sort results by adding this SORTBY option to your query. Here, I'm looking for history books published since 1980, inclusive. I want the results sorted by year of publication, ascending. Now it's your turn to try sorting a few queries in our hands on.
 
 10. Descending Sort
 
@@ -169,7 +169,7 @@ FT.SEARCH books-idx "@published_year:[2018 +inf]" SORTBY published_year DESC
 
 11. Sorting by Multiple Fields
 
-The SORTBY option to FT.SEARCH allows you to sort by only one field per query. However, as you’ll see when we talk about aggregations, you can sort an aggregation query by more than one field.
+The `SORTBY` option to FT.SEARCH allows you to sort by only one field per query. However, as you’ll see when we talk about aggregations, you can sort an aggregation query by more than one field.
 
 Try finding Juvenile Fiction books sorted by the year they were published:
 ```
@@ -183,11 +183,11 @@ FT.SEARCH books-idx "@average_rating:[4.9 5]" SORTBY average_rating DESC
 
 12. [Limiting Results](https://youtu.be/pK5uWyqgcAo)
 
-Let's look at one last feature of basic queries-- how to limit the result set. Use the LIMIT option to limit the number of results returned by a query. This option takes two arguments, an offset and a maximum number of results to return in that order. Here, we query for the five highest rated books published in 1955. As you can see, the offset is 0-based. Next up, you'll try a few LIMIT queries. Then, you'll tackle some challenges to reinforce what you've learned in this unit. Good luck.
+Let's look at one last feature of basic queries-- how to limit the result set. Use the `LIMIT` option to limit the number of results returned by a query. This option takes two arguments, an offset and a maximum number of results to return in that order. Here, we query for the five highest rated books published in 1955. As you can see, the offset is 0-based. Next up, you'll try a few `LIMIT` queries. Then, you'll tackle some challenges to reinforce what you've learned in this unit. Good luck.
 
 13. Pagination
 
-You can use LIMIT for pagination. To get the first five Agatha Christie books ordered by publication date, you might write this:
+You can use `LIMIT` for pagination. To get the first five Agatha Christie books ordered by publication date, you might write this:
 ```
 FT.SEARCH books-idx "@authors:Agatha Christie" SORTBY published_year LIMIT 0 5
 ```
@@ -210,15 +210,19 @@ FT.SEARCH books-idx "@published_year:[2000 +inf]" LIMIT 100 100
 
 #### II. [Full-Text Search](https://youtu.be/be10fjWAsUg)
 
-We started this course by talking about how to search for structured data, like finding users by ID or email address. This second unit is about searching unstructured data using full-text search. When you perform a full-text search, you may not know the exact value you want to find and the fields you're searching may contain unstructured data, like product descriptions or user reviews. In the following lessons, you're going to learn how to perform basic full-text searches, prefix matches, and Boolean queries. You'll also learn a bit about stemming, which is one of the techniques that makes full-text search possible. Let's dive right in.
+We started this course by talking about how to search for structured data, like finding users by ID or email address. This second unit is about searching unstructured data using full-text search. When you perform a full-text search, you may not know the exact value you want to find and the fields you're searching may contain unstructured data, like product descriptions or user reviews. 
+
+In the following lessons, you're going to learn how to perform basic full-text searches, prefix matches, and Boolean queries. You'll also learn a bit about stemming, which is one of the techniques that makes full-text search possible. Let's dive right in.
 
 1. [Basic Full-Text Search](https://youtu.be/5XLvPmVVH4E)
 
-In this lesson, you learned how to use RediSearch to perform basic full-text searches. Full text search is most useful when you don't know the exact value you want to find or you're searching unstructured data. We're going to try a few queries using our books index. Here's what that index looks like again. You can see that we've indexed the title, subtitle, and description fields as TEXT. This query searches for the terms "Hercule" and "Poirot" in all the text fields in the book's index. So if the words "Hercule" or "Poirot" appear in any TEXT field, we'll have a match. Now go ahead and try a few basic full text searches on your own.
+In this lesson, you learned how to use RediSearch to perform basic full-text searches. Full text search is most useful when you don't know the exact value you want to find or you're searching unstructured data. We're going to try a few queries using our books index. Here's what that index looks like again. 
+
+You can see that we've indexed the title, subtitle, and description fields as `TEXT`. This query searches for the terms "Hercule" and "Poirot" in all the text fields in the book's index. So if the words "Hercule" or "Poirot" appear in any `TEXT` field, we'll have a match. Now go ahead and try a few basic full text searches on your own.
 
 2. Stemming
 
-When you index a field as TEXT, RediSearch stores the root of the word in the index, not the word itself. So the word “thinking” becomes “think,” “running” becomes “run,” and so on. This is known as stemming.
+When you index a field as `TEXT`, RediSearch stores the root of the word in the index, not the word itself. So the word “thinking” becomes “think,” “running” becomes “run,” and so on. This is known as stemming.
 
 Here’s an example of how this works. I search for books that have the word “running” in the title.
 ```
@@ -253,7 +257,7 @@ And I get back books with the words “Running” and “Run” in the title.
 16) "ru203:book:details:9780439650366"
 ```
 
-Full-text search works by comparing terms in the input against all TEXT fields in the index. Try searching for books using the name of a popular author of spy novels, John Le Carre.
+Full-text search works by comparing terms in the input against all `TEXT` fields in the index. Try searching for books using the name of a popular author of spy novels, John Le Carre.
 ```
 FT.SEARCH books-idx "John Le Carre"
 ```
@@ -267,7 +271,9 @@ Notice that the results have “unicorn” in their descriptions.
 
 3. [Prefix Matching](https://youtu.be/OHUbm0_3yIg)
 
-RediSearch supports prefix matching. You can provide the first characters of a term, and RediSearch finds documents with any terms that start with those characters. This feature allows you to provide search results as users type. For example, here we search for documents containing terms that start with 'wiz.' Be careful, though. The fewer characters you include in a prefix search, the more terms you'll search. With a very large index and a short enough prefix, your queries might be slow. OK, that was a quick overview of prefix matching. Now, it's time to practice a few queries yourself.
+RediSearch supports prefix matching. You can provide the first characters of a term, and RediSearch finds documents with any terms that start with those characters. This feature allows you to provide search results as users type. 
+
+For example, here we search for documents containing terms that start with 'wiz.' Be careful, though. The fewer characters you include in a prefix search, the more terms you'll search. With a very large index and a short enough prefix, your queries might be slow. OK, that was a quick overview of prefix matching. Now, it's time to practice a few queries yourself.
 
 You can combine a normal full-text term with a prefix term. Try searching for matches with the term “atwood” and the prefix “hand”:
 ```
@@ -288,7 +294,7 @@ Try finding books about dragons that are not also about wizards or magicians!
 FT.SEARCH books-idx "dragons -wizard -magician"
 ```
 
-Now, try a full-text search for “mars” across all TEXT fields with a full-text search for “heinlein” in only the authors field:
+Now, try a full-text search for “mars” across all `TEXT` fields with a full-text search for “heinlein” in only the authors field:
 ```
 FT.SEARCH books-idx "mars @authors:heinlein"
 ```
@@ -305,7 +311,11 @@ FT.SEARCH books-idx murder sortby published_year limit 0 1
 
 5. [Highlighting and Summarization](https://youtu.be/6M_2QD1jEwI)
 
-When you perform a full-text search, you'll often want to highlight the text and the result that matches the search terms. That's what highlighting is for. When you request highlighting, RediSearch, will surround matching terms and results with an HTML tag. For example, here's how you search for nature and highlight any matches found in a description, title, or subtitle fields. You can see in this example that RediSearch highlighted nature in the title and description of this book. Next, you'll learn about summarization. And then you'll get a chance to try some queries for yourself. After this lesson, you'll have finished your section on full-text search. You'll get to practice what you've learned by taking a few challenges. Remember to refer back to these videos or ask questions in our online chat for guidance. Best of luck! :)
+When you perform a full-text search, you'll often want to highlight the text and the result that matches the search terms. That's what highlighting is for. When you request highlighting, RediSearch, will surround matching terms and results with an HTML tag. 
+
+For example, here's how you search for nature and highlight any matches found in a description, title, or subtitle fields. You can see in this example that RediSearch highlighted nature in the title and description of this book. 
+
+Next, you'll learn about summarization. And then you'll get a chance to try some queries for yourself. After this lesson, you'll have finished your section on full-text search. You'll get to practice what you've learned by taking a few challenges. Remember to refer back to these videos or ask questions in our online chat for guidance. Best of luck! :)
 
 6. Summarization
 
