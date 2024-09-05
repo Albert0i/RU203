@@ -406,11 +406,15 @@ FT.SEARCH books-idx shield HIGHLIGHT SUMMARIZE FIELDS 1 description FRAGS 1 LEN 
 
 #### III. [Aggregations](https://youtu.be/P9xU4RKE0vg)
 
-Now that you've learned how to work with structured and unstructured data, we're going to talk about aggregations. You might already be familiar with this topic from relational databases and SQL. But if not, aggregations let you process the results of a query and transform them. So how is this type of query useful? Mainly you'll use aggregations to create analytics reports or build faceted search experiences. When you build reports, you often need to group query results by a specific field and calculate a number based on data in the field. You might also sort the results or transform the field value somehow, like by turning a Unix timestamp into a date string. We'll cover all these features of aggregations in this section. And you'll also get a chance to try some queries yourself. Let's get started.
+Now that you've learned how to work with structured and unstructured data, we're going to talk about aggregations. You might already be familiar with this topic from relational databases and SQL. But if not, aggregations let you process the results of a query and transform them. So how is this type of query useful? Mainly you'll use aggregations to create analytics reports or build faceted search experiences. 
+
+When you build reports, you often need to group query results by a specific field and calculate a number based on data in the field. You might also sort the results or transform the field value somehow, like by turning a Unix timestamp into a date string. We'll cover all these features of aggregations in this section. And you'll also get a chance to try some queries yourself. Let's get started.
 
 1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
 
-A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the LIMIT option to the FT.SEARCH command for this. If you specify LIMIT 0 0, RediSearch will return the number of documents that match your query, but not the results. For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
+A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the `LIMIT` option to the FT.SEARCH command for this. If you specify `LIMIT` 0 0, RediSearch will return the number of documents that match your query, but not the results. 
+
+For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
 
 2. Counting Query Results with Aggregations
 
@@ -465,7 +469,7 @@ FT.AGGREGATE books-idx python GROUPBY 1 @categories
 
 5. [Sorting](https://youtu.be/o1NawK5KrJA)
 
-You can sort aggregate query results with the SORTBY option. This works the same as sorting a non-aggregate query. This query finds the years that someone published a book mentioning Tolkien, sorted by the publication year. Now you try sorting a few aggregate queries.
+You can sort aggregate query results with the `SORTBY` option. This works the same as sorting a non-aggregate query. This query finds the years that someone published a book mentioning Tolkien, sorted by the publication year. Now you try sorting a few aggregate queries.
 
 Try finding all users in the users-idx index, grouped by last login date and last name, and then sorted by last name.
 ```
@@ -479,7 +483,7 @@ FT.AGGREGATE books-idx "@published_year:[1983 1983]" GROUPBY 2 @authors @title S
 
 6. [Reducing Aggregation Data](https://youtu.be/9YrKDkBFObE)
 
-The point of aggregate queries is usually to calculate some number, like an average or a sum. With RediSearch, you do this with a reducer function. Say you want to count the number of books published each year that mention Tolkien, sorted by year. That query looks like this. The COUNT reducer counts the number of records in a group. Next, you'll get a chance to try using reducer functions yourself.
+The point of aggregate queries is usually to calculate some number, like an average or a sum. With RediSearch, you do this with a reducer function. Say you want to count the number of books published each year that mention Tolkien, sorted by year. That query looks like this. The `COUNT` reducer counts the number of records in a group. Next, you'll get a chance to try using reducer functions yourself.
 
 Try counting the number of books in each category to see which categories have the most books.
 ```
@@ -493,9 +497,11 @@ FT.AGGREGATE books-idx tolkien GROUPBY 0 REDUCE AVG 1 @average_rating as avg_rat
 
 7. [Transforming Aggregation Data](https://youtu.be/OaJnQ-Fe-BI)
 
-You can use APPLY to transform values in the index like converting Unix timestamps to human readable date strings. This query counts the number of book checkouts on each date, but instead of returning Unix time stamps, it returns formatted date strings. Notice the timefmt function here. This converts a timestamp to a date string. Next, you'll see another example of how to use APPLY to transform data, and you'll practice a few queries of your own. Then you'll move on to the next section of this course, which will teach you about advanced topics like partial indexes and how to handle spelling errors and queries. Stick around to learn some of RediSearch's deeper mysteries.
+You can use `APPLY` to transform values in the index like converting Unix timestamps to human readable date strings. This query counts the number of book checkouts on each date, but instead of returning Unix time stamps, it returns formatted date strings. 
 
-Try finding all books with two co-authors. Authors are stored in a TEXT field, with coauthors separated by semicolons, so one way to do this is to use the split() function in an APPLY step to split the authors. At the end, you’ll need a [FILTER expression](https://redis.io/docs/stack/search/reference/aggregations/#filter-expressions) to match only books with two authors.
+Notice the `timefmt` function here. This converts a timestamp to a date string. Next, you'll see another example of how to use `APPLY` to transform data, and you'll practice a few queries of your own. Then you'll move on to the next section of this course, which will teach you about advanced topics like partial indexes and how to handle spelling errors and queries. Stick around to learn some of RediSearch's deeper mysteries.
+
+Try finding all books with two co-authors. Authors are stored in a `TEXT` field, with coauthors separated by semicolons, so one way to do this is to use the `split()` function in an `APPLY` step to split the authors. At the end, you’ll need a [FILTER expression](https://redis.io/docs/stack/search/reference/aggregations/#filter-expressions) to match only books with two authors.
 ```
 FT.AGGREGATE books-idx * APPLY "split(@authors, ';')" AS authors_list GROUPBY 1 @title REDUCE COUNT_DISTINCT 1 authors_list AS authors_count FILTER "@authors_count==2"
 ```
@@ -507,7 +513,7 @@ FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "dayofweek(@last_l
 
 Finally, find the days that more than one user logged in -- in other words, count the distinct IDs of users in the users-idx index who last logged in, grouped by date. You should return the date as a formatted time string, like "2020-12-12T00:00:00Z".
 
-Keep in mind that the field “last_login” is a time -- and you want to find the date. Hint: you’ll need to use two APPLY expressions. Be sure to check the list of APPLY functions. And also check out the supported [GROUPBY reducers](https://redis.io/docs/stack/search/reference/aggregations/#groupby-reducers).
+Keep in mind that the field “last_login” is a time -- and you want to find the date. Hint: you’ll need to use two `APPLY` expressions. Be sure to check the list of `APPLY` functions. And also check out the supported [GROUPBY reducers](https://redis.io/docs/stack/search/reference/aggregations/#groupby-reducers).
 ```
 FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "day(@last_login)" as last_login_day APPLY "timefmt(@last_login_day)" AS "last_login_str" GROUPBY 1 "@last_login_str" REDUCE COUNT_DISTINCT 1 "@user_id" AS num_logins FILTER "@num_logins>1"
 ```
