@@ -27,7 +27,29 @@ As you can see, you escape punctuation by preceding it with two backslashes (\\)
 
 So, as a general rule you, should always escape the following punctuation in TAG field queries:
 
-,.<>{}[]"':;!@#$%^&*()-+=~
+**,.<>{}[]"':;!@#$%^&*()-+=~**
+
+First, find the book *The Inner Reaches of Outer Space*:
+```
+FT.SEARCH books-idx "@isbn:{9781577312093}"
+```
+
+Now find the author Edward John Moreton Drax Plunkett Baron Dunsany, whose ID is 690:
+```
+FT.SEARCH authors-idx "@author_id:{690}"
+```
+
+Next, find books by Edward John Moreton Drax Plunkett Baron Dunsany:
+```
+FT.SEARCH books-idx "@author_ids:{690}" RETURN 1 title
+```
+
+**NOTE**: You can use the RETURN option to return only some fields.
+
+Finally, find books that have the "Fantasy" category:
+```
+FT.SEARCH books-idx "@categories:{Fantasy}"
+```
 
 4. [Working with Numbers](https://youtu.be/grBk0_iz-BM)
 
