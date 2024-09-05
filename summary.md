@@ -3,7 +3,9 @@
 
 #### I. [Querying Structured Data](https://youtu.be/0mqpeQP2sbc)
 
-Hello, and welcome to the first unit in our Redis Search course. We're excited to have you here and look forward to learning with you. In this unit, you're going to learn how to query structured data. For example, suppose our user records look like this. We might want to query users by ID or email address or by registration date. If you want to query your data in an unstructured manner, that falls within the realm of full text search which is the subject of the next unit. For now, we're going to focus on exact string matching, numeric queries, working with dates and times, Boolean logic, and a few more related topics. We're really excited to have you here. Let's get started.
+Hello, and welcome to the first unit in our Redis Search course. We're excited to have you here and look forward to learning with you. In this unit, you're going to learn how to query structured data. 
+
+For example, suppose our user records look like this. We might want to query users by ID or email address or by registration date. If you want to query your data in an unstructured manner, that falls within the realm of full text search which is the subject of the next unit. For now, we're going to focus on exact string matching, numeric queries, working with dates and times, Boolean logic, and a few more related topics. We're really excited to have you here. Let's get started.
 
 1. [Finding Exact String Matches](https://youtu.be/cRbPtrGtCsM)
 
