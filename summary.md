@@ -2,6 +2,7 @@
 
 
 #### I. [Querying Structured Data](https://youtu.be/0mqpeQP2sbc)
+
 1. [Finding Exact String Matches](https://youtu.be/cRbPtrGtCsM)
 
 2. Field-Specific Searches
@@ -165,8 +166,181 @@ FT.SEARCH books-idx "@published_year:[2000 +inf]" LIMIT 100 100
 
 #### II. [Full-Text Search](https://youtu.be/be10fjWAsUg)
 
+1. [Basic Full-Text Search](https://youtu.be/5XLvPmVVH4E)
 
-#### III. Aggregations
+2. Stemming
+
+When you index a field as TEXT, RediSearch stores the root of the word in the index, not the word itself. So the word “thinking” becomes “think,” “running” becomes “run,” and so on. This is known as stemming.
+
+Here’s an example of how this works. I search for books that have the word “running” in the title.
+```
+FT.SEARCH books-idx "@title:running" RETURN 1 title
+```
+
+And I get back books with the words “Running” and “Run” in the title.
+```
+127.0.0.1:6379> FT.SEARCH books-idx "@title:running" RETURN 1 title
+ 1) (integer) 14
+ 2) "ru203:book:details:9780679722946"
+ 3) 1) "title"
+    2) "Running Dog"
+ 4) "ru203:book:details:9780451197962"
+ 5) 1) "title"
+    2) "The Running Man"
+ 6) "ru203:book:details:9780385315289"
+ 7) 1) "title"
+    2) "Running from Safety"
+ 8) "ru203:book:details:9780345461612"
+ 9) 1) "title"
+    2) "Running from the Deity"
+10) "ru203:book:details:9780330281720"
+11) 1) "title"
+    2) "Running in the Family"
+12) "ru203:book:details:9781400033829"
+13) 1) "title"
+    2) "Who Will Run the Frog Hospital?"
+14) "ru203:book:details:9780590317672"
+15) 1) "title"
+    2) "Run"
+16) "ru203:book:details:9780439650366"
+```
+
+Full-text search works by comparing terms in the input against all TEXT fields in the index. Try searching for books using the name of a popular author of spy novels, John Le Carre.
+```
+FT.SEARCH books-idx "John Le Carre"
+```
+
+Queries also compare your terms against descriptions. Try searching for unicorns with this query:
+```
+FT.SEARCH books-idx unicorns
+```
+
+Notice that the results have “unicorn” in their descriptions.
+
+3. [Prefix Matching](https://youtu.be/OHUbm0_3yIg)
+
+You can combine a normal full-text term with a prefix term. Try searching for matches with the term “atwood” and the prefix “hand”:
+```
+FT.SEARCH books-idx "atwood hand*"
+```
+
+You can also use multiple prefix terms in a single query. Try searching for “agat* orie*” -- you should find Murder on the Orient Express.
+```
+FT.SEARCH books-idx "agat* orie*"
+```
+
+4. [Boolean logic, field-specific searches, sorting, and limiting](https://youtu.be/NTGGBQnOqVY)
+
+Try finding books about dragons that are not also about wizards or magicians!
+```
+FT.SEARCH books-idx "dragons -wizard -magician"
+```
+
+Now, try a full-text search for “mars” across all TEXT fields with a full-text search for “heinlein” in only the authors field:
+```
+FT.SEARCH books-idx "mars @authors:heinlein"
+```
+
+Try sorting all books that mention the prefix “crypto” sorted by publication year.
+```
+FT.SEARCH books-idx crypto* sortby published_year
+```
+
+Finally, get the first book in order of publication year that mentions “murder”:
+```
+FT.SEARCH books-idx murder sortby published_year limit 0 1
+```
+
+5. [Highlighting and Summarization](https://youtu.be/6M_2QD1jEwI)
+
+6. Summarization
+
+Summarizing refers to the practice of returning small snippets of text around terms that matched a query, rather than the entire field.
+
+This query returns a maximum of three (which is also the default) "fragments" of twenty-five words each for matches of the term "agamemnon":
+```
+FT.SEARCH books-idx agamemnon SUMMARIZE FIELDS 1 description FRAGS 3 LEN 25
+```
+
+**Note**: In this context, the matching text is often called a “hit.”
+
+Result:
+```
+1) (integer) 6
+ 2) "ru203:book:details:9780812216271"
+ 3)  1) "description"
+     2) "David Slavitt of the great trilogy of the House of Atreus, telling of
+         Agamemnon's murder at the hands of his wife, Clytemnestra, and her 
+         lover... "
+     3) "categories"
+     4) "Drama"
+     5) "thumbnail"
+     6) "http://books.google.com/books/content?id=z22kI-IKUXoC&printsec=
+         frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+     7) "subtitle"
+     8) "The Oresteia (Agamemnon, The Libation Bearers, The Eumenides)"
+     9) "title"
+    10) "Aeschylus, 1"
+    11) "isbn"
+    12) "9780812216271"
+    13) "average_rating"
+    14) "4.01"
+    15) "authors"
+    16) "Aeschylus"
+    17) "published_year"
+    18) "1998"
+    19) "author_ids"
+    20) "538"
+...
+```
+
+You can combine **HIGHLIGHT** and **SUMMARIZE** together to highlight hits in a field and summarize the text returned around each hit.
+```
+FT.SEARCH books-idx agamemnon SUMMARIZE FIELDS 1 description FRAGS 3 LEN 25 HIGHLIGHT
+```
+
+Result:
+```
+ 1) (integer) 6
+ 2) "ru203:book:details:9780812216271"
+ 3)  1) "description"
+     2) "David Slavitt of the great trilogy of the House of Atreus, telling of
+        <b>Agamemnon</b>'s murder at the hands of his wife, Clytemnestra, and 
+        her lover... "
+     3) "categories"
+     4) "Drama"
+     5) "thumbnail"
+     6) "http://books.google.com/books/content?id=z22kI-IKUXoC&
+        printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+     7) "subtitle"
+     8) "The Oresteia (Agamemnon, The Libation Bearers, The Eumenides)"
+     9) "title"
+    10) "Aeschylus, 1"
+    11) "isbn"
+    12) "9780812216271"
+    13) "average_rating"
+    14) "4.01"
+    15) "authors"
+    16) "Aeschylus"
+    17) "published_year"
+    18) "1998"
+    19) "author_ids"
+    20) "538"
+...
+```
+
+Search for the term “illusion” and highlight any matches:
+```
+FT.SEARCH books-idx illusion highlight
+```
+
+Now search for “shield,” highlighting any matches, and summarizing the description field with a max fragments of 1 and length 20.
+```
+FT.SEARCH books-idx shield HIGHLIGHT SUMMARIZE FIELDS 1 description FRAGS 1 LEN 20
+```
+
+
+#### III. [Aggregations](https://youtu.be/P9xU4RKE0vg)
 
 
 #### IV. Advanced Topics
