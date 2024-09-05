@@ -5,6 +5,8 @@
 
 1. [Finding Exact String Matches](https://youtu.be/cRbPtrGtCsM)
 
+If you know that you will only ever query a field for exact string matches, like IDs, categories, or email addresses, then the most efficient field type is `TAG`. To see an example of `TAG` fields, let's take a look at this definition of the index we use for book data. You can see that we've stored several fields as TAGs-- isbn, thumbnail, categories, and author IDs. Let's see what these values look like in the hash for Neal Stephenson's book, Cryptonomicon. Here are the isbn categories and author ID values. We know that when we search for books by these fields, we're going to use an exact string match, so Tag is the right type for these fields. Now let's try some queries. This query finds the book, The New Annotated Sherlock Holmes, by its isbn. And this query searches for books by J. R. R. Tolkien, the author, with the ID 34. Now, it's your turn to address some queries in our hands-on tutorial.
+
 2. Field-Specific Searches
 
 Let's review how to query a `TAG` field in RediSearch. There are two key points:
