@@ -206,6 +206,8 @@ We started this course by talking about how to search for structured data, like 
 
 1. [Basic Full-Text Search](https://youtu.be/5XLvPmVVH4E)
 
+In this lesson, you learned how to use RediSearch to perform basic full-text searches. Full text search is most useful when you don't know the exact value you want to find or you're searching unstructured data. We're going to try a few queries using our books index. Here's what that index looks like again. You can see that we've indexed the title, subtitle, and description fields as TEXT. This query searches for the terms "Hercule" and "Poirot" in all the text fields in the book's index. So if the words "Hercule" or "Poirot" appear in any TEXT field, we'll have a match. Now go ahead and try a few basic full text searches on your own.
+
 2. Stemming
 
 When you index a field as TEXT, RediSearch stores the root of the word in the index, not the word itself. So the word “thinking” becomes “think,” “running” becomes “run,” and so on. This is known as stemming.
@@ -257,6 +259,8 @@ Notice that the results have “unicorn” in their descriptions.
 
 3. [Prefix Matching](https://youtu.be/OHUbm0_3yIg)
 
+RediSearch supports prefix matching. You can provide the first characters of a term, and RediSearch finds documents with any terms that start with those characters. This feature allows you to provide search results as users type. For example, here we search for documents containing terms that start with 'wiz.' Be careful, though. The fewer characters you include in a prefix search, the more terms you'll search. With a very large index and a short enough prefix, your queries might be slow. OK, that was a quick overview of prefix matching. Now, it's time to practice a few queries yourself.
+
 You can combine a normal full-text term with a prefix term. Try searching for matches with the term “atwood” and the prefix “hand”:
 ```
 FT.SEARCH books-idx "atwood hand*"
@@ -268,6 +272,8 @@ FT.SEARCH books-idx "agat* orie*"
 ```
 
 4. [Boolean logic, field-specific searches, sorting, and limiting](https://youtu.be/NTGGBQnOqVY)
+
+All the techniques we talked about in unit one of this course for Boolean logic, field-specific searches, sorting, and limiting also work for full-text searches. Let's look at an example that uses a couple of these techniques. In this query, we're looking for all book records that mention wizard, but not Harry. And we're sorting the results by title. Now, you'll get a chance to practice using Boolean logic and other techniques with full-text search yourself.
 
 Try finding books about dragons that are not also about wizards or magicians!
 ```
@@ -290,6 +296,8 @@ FT.SEARCH books-idx murder sortby published_year limit 0 1
 ```
 
 5. [Highlighting and Summarization](https://youtu.be/6M_2QD1jEwI)
+
+When you perform a full-text search, you'll often want to highlight the text and the result that matches the search terms. That's what highlighting is for. When you request highlighting, RediSearch, will surround matching terms and results with an HTML tag. For example, here's how you search for nature and highlight any matches found in a description, title, or subtitle fields. You can see in this example that RediSearch highlighted nature in the title and description of this book. Next, you'll learn about summarization. And then you'll get a chance to try some queries for yourself. After this lesson, you'll have finished your section on full-text search. You'll get to practice what you've learned by taking a few challenges. Remember to refer back to these videos or ask questions in our online chat for guidance. Best of luck! :)
 
 6. Summarization
 
@@ -380,7 +388,11 @@ FT.SEARCH books-idx shield HIGHLIGHT SUMMARIZE FIELDS 1 description FRAGS 1 LEN 
 
 #### III. [Aggregations](https://youtu.be/P9xU4RKE0vg)
 
+Now that you've learned how to work with structured and unstructured data, we're going to talk about aggregations. You might already be familiar with this topic from relational databases and SQL. But if not, aggregations let you process the results of a query and transform them. So how is this type of query useful? Mainly you'll use aggregations to create analytics reports or build faceted search experiences. When you build reports, you often need to group query results by a specific field and calculate a number based on data in the field. You might also sort the results or transform the field value somehow, like by turning a Unix timestamp into a date string. We'll cover all these features of aggregations in this section. And you'll also get a chance to try some queries yourself. Let's get started.
+
 1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
+
+A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the LIMIT option to the FT.SEARCH command for this. If you specify LIMIT 0 0, RediSearch will return the number of documents that match your query, but not the results. For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
 
 2. Counting Query Results with Aggregations
 
@@ -412,6 +424,8 @@ FT.SEARCH books-idx "@categories:{Fiction}" LIMIT 0 0
 
 3. [Grouping Data](https://youtu.be/dPL0sXjCKZU)
 
+Another common use of aggregations is to group results. You do that in Redisearch with the GROUPBY option to the FT.AGGREGATE command. Here, we get all the years in which someone published a book that mentioned Tolkien. Now it's your turn to practice grouping by fields.
+
 4. Aggregating All Items in a Query
 
 Sometimes, you’ll want to run an aggregation on all documents that match a query. For example, say you want to run a calculation against all books that mention Tolkien. Here’s how you’d group them all together:
@@ -433,6 +447,8 @@ FT.AGGREGATE books-idx python GROUPBY 1 @categories
 
 5. [Sorting](https://youtu.be/o1NawK5KrJA)
 
+You can sort aggregate query results with the SORTBY option. This works the same as sorting a non-aggregate query. This query finds the years that someone published a book mentioning Tolkien, sorted by the publication year. Now you try sorting a few aggregate queries.
+
 Try finding all users in the users-idx index, grouped by last login date and last name, and then sorted by last name.
 ```
 FT.AGGREGATE users-idx * GROUPBY 2 @last_login @last_name SORTBY 1 @last_name
@@ -445,6 +461,8 @@ FT.AGGREGATE books-idx "@published_year:[1983 1983]" GROUPBY 2 @authors @title S
 
 6. [Reducing Aggregation Data](https://youtu.be/9YrKDkBFObE)
 
+The point of aggregate queries is usually to calculate some number, like an average or a sum. With RediSearch, you do this with a reducer function. Say you want to count the number of books published each year that mention Tolkien, sorted by year. That query looks like this. The COUNT reducer counts the number of records in a group. Next, you'll get a chance to try using reducer functions yourself.
+
 Try counting the number of books in each category to see which categories have the most books.
 ```
 FT.AGGREGATE books-idx * GROUPBY 1 @categories REDUCE COUNT 0 AS books_count SORTBY 2 @books_count DESC
@@ -456,6 +474,8 @@ FT.AGGREGATE books-idx tolkien GROUPBY 0 REDUCE AVG 1 @average_rating as avg_rat
 ```
 
 7. [Transforming Aggregation Data](https://youtu.be/OaJnQ-Fe-BI)
+
+You can use APPLY to transform values in the index like converting Unix timestamps to human readable date strings. This query counts the number of book checkouts on each date, but instead of returning Unix time stamps, it returns formatted date strings. Notice the timefmt function here. This converts a timestamp to a date string. Next, you'll see another example of how to use APPLY to transform data, and you'll practice a few queries of your own. Then you'll move on to the next section of this course, which will teach you about advanced topics like partial indexes and how to handle spelling errors and queries. Stick around to learn some of RediSearch's deeper mysteries.
 
 Try finding all books with two co-authors. Authors are stored in a TEXT field, with coauthors separated by semicolons, so one way to do this is to use the split() function in an APPLY step to split the authors. At the end, you’ll need a [FILTER expression](https://redis.io/docs/stack/search/reference/aggregations/#filter-expressions) to match only books with two authors.
 ```
@@ -477,7 +497,11 @@ FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "day(@last_login)"
 
 #### IV. [Advanced Topics](https://youtu.be/k5_q9PBFEmc)
 
+By now you learned how to work with structured and unstructured data. You also know how to use aggregations to build reporting queries like you can with SQL. Now it's time to dig into some advanced topics. We'll talk about how to create partial indexes, which can improve performance if you have a lot of hashes. We'll also look at how to do query-time boosting, which is a common feature of search engines. And we'll cover edge cases, like exact matching punctuation in text fields and how to handle spelling errors in queries. You might not use these techniques very often, but when the need arises, you'll be glad you learned them.
+
 1. [Partial Indexes](https://youtu.be/3LVe51FLDIA)
+
+When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to FT.CREATE command with a filter like this. Now you can query only checkouts of this book.
 
 2. Why Do This?
 
@@ -519,6 +543,8 @@ FT.AGGREGATE books-fiction-idx * GROUPBY 1 @authors REDUCE COUNT_DISTINCT 1 @tit
 
 3. [Adjusting the Score of a Term](https://youtu.be/EuHkkpH1-94)
 
+Query-time boosting is a common technique in search engines. Boosting or modifying the score of specific terms in a query allows you to change document scores without re-indexing. With RediSearch, you can do this by changing the weight of a term. This full-text search for Greek mythology boosts the score of books that have an average rating of 4.5 or higher. Let's break this query down a bit more. The query is two clauses, one clause for Greek mythology books with an average rating of 4.5 or higher, and a second clause for all Greek mythology books. Because this query connects both terms with the Boolean OR, the two sets of results are combined. Changing the weight of the books that have an average rating of 4.5 or higher, like we do here, means they will score higher in the results.
+
 Consider this scenario. A user browsing a bookstore's web site clicks on the “History” section and then searches for “greek” books. How might you increase the weight of “greek” books that have the “History” category, while also returning books from other categories?
 ```
 FT.SEARCH books-idx "((@categories:{History}) => { $weight: 10 } greek) | greek"
@@ -532,6 +558,8 @@ FT.SEARCH books-idx "((@published_year:[2000 +inf]) => { $weight: 10 } cowboy) |
 ```
 
 4. [Getting All Documents in an Index](https://youtu.be/WzGKJZ0ysx4)
+
+Wild card queries return all documents in an index. This can be useful when writing aggregations or testing and debugging non-aggregation queries. Take a look at this query that finds all books in books index.
 
 Try getting all users in the users-idx index.
 ```
@@ -567,6 +595,8 @@ FT.SEARCH users-idx "@escaped_email:a\\.m\\.brookins\\@example\\.com"
 ```
 
 6. [Handling Spelling Errors](https://youtu.be/GqlZzQFi5nI)
+
+Congratulations, you've made it to the last lesson of the course. You've come a long way and your efforts should be commended. We've saved the best topic for last: spelling errors. You can use fuzzy matching also known as Levenshtein distance to transparently handle some spelling errors in a query. This query searches for terms similar to the word address misspelled with one d. You can see that Redis search finds matches for the correct spelling of the word.
 
 7. Spellcheck
 
