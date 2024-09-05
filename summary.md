@@ -131,7 +131,7 @@ Now try finding books with the Philosophy category, published on or before 1975,
 FT.SEARCH books-idx "@categories:{Philosophy} @published_year:[-inf 1975] -@authors:'Arthur Koestler'"
 ```
 
-Note: We use curly braces around “Philosophy” in this query because “categories” is a TAG field. As you may recall from our section on exact-string matches, querying TAG fields requires curly braces.
+**Note**: We use curly braces around “Philosophy” in this query because “categories” is a TAG field. As you may recall from our section on exact-string matches, querying TAG fields requires curly braces.
 
 Finally, try finding books written by Aruthur Koestler OR Michel Foucault:
 ```
@@ -246,7 +246,7 @@ You can combine a normal full-text term with a prefix term. Try searching for ma
 FT.SEARCH books-idx "atwood hand*"
 ```
 
-You can also use multiple prefix terms in a single query. Try searching for “agat* orie*” -- you should find Murder on the Orient Express.
+You can also use multiple prefix terms in a single query. Try searching for “agat* orie*” -- you should find *Murder on the Orient Express*.
 ```
 FT.SEARCH books-idx "agat* orie*"
 ```
@@ -364,8 +364,214 @@ FT.SEARCH books-idx shield HIGHLIGHT SUMMARIZE FIELDS 1 description FRAGS 1 LEN 
 
 #### III. [Aggregations](https://youtu.be/P9xU4RKE0vg)
 
+1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
 
-#### IV. Advanced Topics
+2. Counting Query Results with Aggregations
+
+FT.SEARCH works perfectly well to count query results, but you can also use the FT.AGGREGATE command to count items in a query.
+
+Here’s an aggregation query that finds the same number of items as the FT.SEARCH query we just looked at:
+```
+FT.AGGREGATE books-idx * GROUPBY 0 REDUCE COUNT 0 AS total
+```
+
+This query introduces us to most of the concepts we’ll talk about in this unit. Let’s go through the steps briefly.
+
+First: FT.AGGREGATE books-idx *
+
+FT.AGGREGATE is the command you use to run RediSearch aggregations. Like FT.SEARCH, it takes an index and a query. Here we use the star symbol to query all items in the index.
+
+Second: GROUPBY 0
+
+Aggregations require a GROUPBY clause to reduce results down to a number using a “reducer” function.
+
+Finally: REDUCE COUNT 0 AS total
+
+Here, we use the COUNT reducer to count all items in the group, and we name the result “total.”
+
+Try finding the number of books in the books-idx index with the category “Fiction.” Remember that the “categories” field is a TAG field.
+```
+FT.SEARCH books-idx "@categories:{Fiction}" LIMIT 0 0
+```
+
+3. [Grouping Data](https://youtu.be/dPL0sXjCKZU)
+
+4. Aggregating All Items in a Query
+
+Sometimes, you’ll want to run an aggregation on all documents that match a query. For example, say you want to run a calculation against all books that mention Tolkien. Here’s how you’d group them all together:
+```
+FT.AGGREGATE books-idx tolkien GROUPBY 0
+```
+
+Notice the **GROUPBY 0** option. This places all query results in the same group, so if you add a reducer function -- which we'll talk about in the next lesson -- you can apply it to all items in the query.
+
+Try grouping book checkouts in the checkouts-idx index by the checkout date.
+```
+FT.AGGREGATE checkouts-idx * GROUPBY 1 @checkout_date
+```
+
+Now try a search for “python” in the books-idx index grouped by the “categories” field.
+```
+FT.AGGREGATE books-idx python GROUPBY 1 @categories
+```
+
+5. [Sorting](https://youtu.be/o1NawK5KrJA)
+
+Try finding all users in the users-idx index, grouped by last login date and last name, and then sorted by last name.
+```
+FT.AGGREGATE users-idx * GROUPBY 2 @last_login @last_name SORTBY 1 @last_name
+```
+
+Now try finding books in the books-idx index published in the year 1983, grouped by author and title, and then sorted by authors and by title.
+```
+FT.AGGREGATE books-idx "@published_year:[1983 1983]" GROUPBY 2 @authors @title SORTBY 2 @authors @title
+```
+
+6. [Reducing Aggregation Data](https://youtu.be/9YrKDkBFObE)
+
+Try counting the number of books in each category to see which categories have the most books.
+```
+FT.AGGREGATE books-idx * GROUPBY 1 @categories REDUCE COUNT 0 AS books_count SORTBY 2 @books_count DESC
+```
+
+Now try finding the average rating of all books that mention “tolkien.”
+```
+FT.AGGREGATE books-idx tolkien GROUPBY 0 REDUCE AVG 1 @average_rating as avg_rating
+```
+
+7. [Transforming Aggregation Data](https://youtu.be/OaJnQ-Fe-BI)
+
+Try finding all books with two co-authors. Authors are stored in a TEXT field, with coauthors separated by semicolons, so one way to do this is to use the split() function in an APPLY step to split the authors. At the end, you’ll need a [FILTER expression](https://redis.io/docs/stack/search/reference/aggregations/#filter-expressions) to match only books with two authors.
+```
+FT.AGGREGATE books-idx * APPLY "split(@authors, ';')" AS authors_list GROUPBY 1 @title REDUCE COUNT_DISTINCT 1 authors_list AS authors_count FILTER "@authors_count==2"
+```
+
+Now try counting the number of user logins (according to the “last_login” field in the users-idx index) per day of the week. The return should be a day of the week, like 0 for Sunday, 1 for Monday, etc., and the total logins on that day of the week. Check the [list of APPLY functions](https://redis.io/docs/stack/search/reference/aggregations/#list-of-field-apply-functions).
+```
+FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "dayofweek(@last_login)" AS day_of_week GROUPBY 1 @day_of_week REDUCE COUNT 0 AS login_count SORTBY 1 @day_of_week
+```
+
+Finally, find the days that more than one user logged in -- in other words, count the distinct IDs of users in the users-idx index who last logged in, grouped by date. You should return the date as a formatted time string, like "2020-12-12T00:00:00Z".
+
+Keep in mind that the field “last_login” is a time -- and you want to find the date. Hint: you’ll need to use two APPLY expressions. Be sure to check the list of APPLY functions. And also check out the supported [GROUPBY reducers](https://redis.io/docs/stack/search/reference/aggregations/#groupby-reducers).
+```
+FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "day(@last_login)" as last_login_day APPLY "timefmt(@last_login_day)" AS "last_login_str" GROUPBY 1 "@last_login_str" REDUCE COUNT_DISTINCT 1 "@user_id" AS num_logins FILTER "@num_logins>1"
+```
 
 
-### EOF (2024/09/XX) 
+#### IV. [Advanced Topics](https://youtu.be/k5_q9PBFEmc)
+
+1. [Partial Indexes](https://youtu.be/3LVe51FLDIA)
+
+2. Why Do This?
+
+So, why would you create a partial index? The best reason is to save memory.
+
+When you're running Redis on a single server, all of your data, including any RediSearch indexes, needs to fit into RAM. On a cluster, the data needs to fit into the RAM of multiple servers. In both cases, you need to be conscious of memory use.
+
+With partial indexes, you can index only the parts of the data that matter for querying. Consider these scenarios when partial indexes may be appropriate:
+
+- Your index tracks automation events for a retail building, and there is one event type like "door opened" that repeats thousands of times
+
+- Your index tracks ecommerce web site orders with a "status" field -- once the "status" is complete, your application doesn't care about the orders anymore
+
+Imagine that the books-idx index had grown extremely large, and you wanted to split it based on the published year of books. Try creating two indexes: one for books published before 1990 and one for books published on or after 1990.
+```
+FT.CREATE books-older-idx ON HASH PREFIX 1 ru203:book:details: FILTER "@published_year<1990" SCHEMA isbn TAG SORTABLE title TEXT WEIGHT 2.0 SORTABLE subtitle TEXT SORTABLE thumbnail TAG NOINDEX description TEXT SORTABLE published_year NUMERIC SORTABLE average_rating NUMERIC SORTABLE authors TEXT SORTABLE categories TAG SEPARATOR ";" author_ids TAG SEPARATOR ";"
+```
+
+```
+FT.CREATE books-newer-idx ON HASH PREFIX 1 ru203:book:details: FILTER "@published_year>=1990" SCHEMA isbn TAG SORTABLE title TEXT WEIGHT 2.0 SORTABLE subtitle TEXT SORTABLE thumbnail TAG NOINDEX description TEXT SORTABLE published_year NUMERIC SORTABLE average_rating NUMERIC SORTABLE authors TEXT SORTABLE categories TAG SEPARATOR ";" author_ids TAG SEPARATOR ";"
+```
+
+Once these indexes exist, try running a couple of queries. For example, get the count of the number of books in each index:
+```
+FT.SEARCH books-older-idx * LIMIT 0 0
+
+FT.SEARCH books-newer-idx * LIMIT 0 0
+```
+
+Now try creating an index just for books with the “Fiction” category. Note that when filtering during FT.CREATE, you are filtering on the string values in a Hash.
+```
+FT.CREATE books-fiction-idx ON HASH PREFIX 1 ru203:book:details: FILTER "@categories=='Fiction'" SCHEMA isbn TAG SORTABLE title TEXT WEIGHT 2.0 SORTABLE subtitle TEXT SORTABLE thumbnail TAG NOINDEX description TEXT SORTABLE published_year NUMERIC SORTABLE average_rating NUMERIC SORTABLE authors TEXT SORTABLE categories TAG SEPARATOR ";" author_ids TAG SEPARATOR ";"
+```
+
+Now try using an aggregate query to find the authors with the most books published in the books-fiction-idx index.
+```
+FT.AGGREGATE books-fiction-idx * GROUPBY 1 @authors REDUCE COUNT_DISTINCT 1 @title as total_books SORTBY 2 @total_books DESC
+```
+
+3. [Adjusting the Score of a Term](https://youtu.be/EuHkkpH1-94)
+
+Consider this scenario. A user browsing a bookstore's web site clicks on the “History” section and then searches for “greek” books. How might you increase the weight of “greek” books that have the “History” category, while also returning books from other categories?
+```
+FT.SEARCH books-idx "((@categories:{History}) => { $weight: 10 } greek) | greek"
+```
+
+This works because of the use of OR binary logic: books that mention “greek” and have the “History” category will score highest, followed by books of any category that mention “greek."
+
+Another common boost is to score recent documents in an index higher. How might you use the same technique we used for Greek books to score “cowboy” books higher if they were published after the year 2000?
+```
+FT.SEARCH books-idx "((@published_year:[2000 +inf]) => { $weight: 10 } cowboy) | cowboy"
+```
+
+4. [Getting All Documents in an Index](https://youtu.be/WzGKJZ0ysx4)
+
+Try getting all users in the users-idx index.
+```
+FT.SEARCH users-idx *
+```
+
+5. Exact-Matching Punctuation
+
+If the values in a TEXT field will contain punctuation and you want to be able to search for exact matches using that punctuation (e.g., email addresses), you'll need to escape any punctuation in the values when you index. And then when you query, you also need to escape punctuation.
+
+As an example, the users-idx index stores email addresses as TEXT fields. When we added the email address that we planned to use as a TEXT field, we escaped all the punctuation, like so:
+```
+HMSET ru203:user:details:28 first_name "Kelvin" last_name "Brown" email "k.brown@example.com" escaped_email "k\\.brown\\@example\\.com" user_id "28"
+```
+
+To query this field later for an exact-match on an email address, we also need to escape any punctuation in the query:
+```
+FT.SEARCH users-idx "@escaped_email:k\\.brown\\@example\\.com"
+```
+
+If you want to find exact-matches on punctuation, the punctuation you need to escape when indexing and querying is:
+
+**,.<>{}[]"':;!@#$%^&*()-+=~**
+
+Try adding a new user and including their email address in the escaped_email field. The users-idx index processes this field as TEXT, which means you need to escape punctuation in the Hash *and* when you query.
+```
+HMSET ru203:user:details:1000 first_name "Andrew" last_name "Brookins" escaped_email "a\\.m\\.brookins\\@example\\.com" user_id "1000"
+```
+
+Now query the field -- note that you have to escape the punctuation in the email address again:
+```
+FT.SEARCH users-idx "@escaped_email:a\\.m\\.brookins\\@example\\.com"
+```
+
+6. [Handling Spelling Errors](https://youtu.be/GqlZzQFi5nI)
+
+7. Spellcheck
+
+An alternative approach to handling spelling errors is to use the FT.SPELLCHECK command to return possible correct spellings when you suspect a spelling error.
+
+You might use this when you find zero hits for a user’s query to suggest alternative words the user could try searching for. Or, without asking the user, you could run a second query using the first of the words returned by FT.SPELLCHECK, return the results, and explain that you corrected the user's spelling. The second approach is how most web search engines work.
+
+The following spellcheck query finds all possible correct spellings of the term “wizrds” (notice that it is “wizards” misspelled):
+```
+FT.SPELLCHECK books-idx wizrds
+```
+
+Try searching for spell-check suggestions for the term “monter.”
+```
+FT.SPELLCHECK books-idx monter
+```
+
+Now try running a fuzzy-matching query to search for documents with similar terms to “monter.”
+```
+FT.SEARCH books-idx "%monter%"
+```
+
+
+### EOF (2024/09/06) 
