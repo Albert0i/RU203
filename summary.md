@@ -5,6 +5,7 @@
 1. [Finding Exact String Matches](https://youtu.be/cRbPtrGtCsM)
 
 2. Field-Specific Searches
+
 Let's review how to query a `TAG` field in RediSearch. There are two key points:
 
 - Use the @ symbol before the field name
@@ -18,6 +19,7 @@ FT.SEARCH books-idx "@isbn:{9780393059168}"
 This is an example of searching one field. When we talk about boolean logic and later about full-text search, you'll see examples of searching across multiple fields.
 
 3. Escaping Punctuation
+
 **A note on querying with punctuation:** To query for a tag that includes punctuation, like an email address, you need to escape the punctuation (the data in the underlying Hash does not need to be escaped). For example, if we had a tag for "j. r. r. tolkien" instead of author ID, to query it you would need to write **@authors:{j\\. r\\. r\\. tolkien}**.
 
 As you can see, you escape punctuation by preceding it with two backslashes (\\).
@@ -27,6 +29,7 @@ So, as a general rule you, should always escape the following punctuation in TAG
 ,.<>{}[]"':;!@#$%^&*()-+=~
 
 4. [Working with Numbers](https://youtu.be/grBk0_iz-BM)
+
 Try finding the titles of books with an average rating from 4.5 through 5:
 ```
 FT.SEARCH books-idx "@average_rating:[4.5 5]" RETURN 1 title
@@ -48,6 +51,7 @@ FT.SEARCH books-idx "@average_rating:[-inf 3] @published_year:[-inf (2000]" RETU
 ```
 
 5. [Working with Dates and Times](https://youtu.be/TuWdvZNEsmI)
+
 Try finding users who have logged in on or after 1:25pm UTC on December 11, 2020:
 ```
 FT.SEARCH users-idx "@last_login:[1607693100 +inf]"
@@ -63,6 +67,7 @@ You'll have to use a tool like the [UnixTimestampConverter](http://www.unixtimes
 6. [Boolean Logic](https://youtu.be/lH8m4bBVg-k)
 
 7. Full-Text Search
+
 Many of the queries in this section use full-text search because this type of query makes boolean logic simple to illustrate.
 
 Queries that don’t use a specific field default to full-text search using all TEXT fields. So, consider again the following query, taken from the last video:
@@ -75,6 +80,7 @@ This query searches for dogs OR cats in all TEXT fields in the index.
 For now, don’t worry about exactly how full-text search works. Focus on the boolean logic, and we’ll tell you all about full-text search in the next section.
 
 8. Combining Multiple Fields
+
 You can also use boolean logic to combine terms from multiple fields.
 
 Here, we use a boolean AND to find books with the author “rowling” that have “goblet” in the title.
@@ -112,12 +118,14 @@ FT.SEARCH books-idx "@authors:'Arthur Koestler' | @authors:'Michel Foucault'"
 9. [Sorting Results](https://youtu.be/UpCUKPbCn3U)
 
 10. Descending Sort
+
 Here's the same query from the video you just watched, but this time with results sorted in descending order:
 ```
 FT.SEARCH books-idx "@published_year:[2018 +inf]" SORTBY published_year DESC
 ```
 
 11. Sorting by Multiple Fields
+
 The SORTBY option to FT.SEARCH allows you to sort by only one field per query. However, as you’ll see when we talk about aggregations, you can sort an aggregation query by more than one field.
 
 Try finding Juvenile Fiction books sorted by the year they were published:
@@ -133,6 +141,7 @@ FT.SEARCH books-idx "@average_rating:[4.9 5]" SORTBY average_rating DESC
 12. [Limiting Results](https://youtu.be/pK5uWyqgcAo)
 
 13. Pagination
+
 You can use LIMIT for pagination. To get the first five Agatha Christie books ordered by publication date, you might write this:
 ```
 FT.SEARCH books-idx "@authors:Agatha Christie" SORTBY published_year LIMIT 0 5
