@@ -10,3 +10,4 @@ output.txt
 redisdata/
 loadRU203Data.md
 node_modules/*
+*.sql
