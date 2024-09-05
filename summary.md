@@ -169,7 +169,7 @@ FT.SEARCH books-idx "@published_year:[2018 +inf]" SORTBY published_year DESC
 
 11. Sorting by Multiple Fields
 
-The `SORTBY` option to FT.SEARCH allows you to sort by only one field per query. However, as you’ll see when we talk about aggregations, you can sort an aggregation query by more than one field.
+The `SORTBY` option to `FT.SEARCH` allows you to sort by only one field per query. However, as you’ll see when we talk about aggregations, you can sort an aggregation query by more than one field.
 
 Try finding Juvenile Fiction books sorted by the year they were published:
 ```
@@ -412,15 +412,15 @@ When you build reports, you often need to group query results by a specific fiel
 
 1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
 
-A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the `LIMIT` option to the FT.SEARCH command for this. If you specify `LIMIT` 0 0, RediSearch will return the number of documents that match your query, but not the results. 
+A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the `LIMIT` option to the `FT.SEARCH` command for this. If you specify `LIMIT` 0 0, RediSearch will return the number of documents that match your query, but not the results. 
 
 For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
 
 2. Counting Query Results with Aggregations
 
-FT.SEARCH works perfectly well to count query results, but you can also use the FT.AGGREGATE command to count items in a query.
+`FT.SEARCH` works perfectly well to count query results, but you can also use the `FT.AGGREGATE` command to count items in a query.
 
-Here’s an aggregation query that finds the same number of items as the FT.SEARCH query we just looked at:
+Here’s an aggregation query that finds the same number of items as the `FT.SEARCH` query we just looked at:
 ```
 FT.AGGREGATE books-idx * GROUPBY 0 REDUCE COUNT 0 AS total
 ```
@@ -429,7 +429,7 @@ This query introduces us to most of the concepts we’ll talk about in this unit
 
 First: FT.AGGREGATE books-idx *
 
-FT.AGGREGATE is the command you use to run RediSearch aggregations. Like FT.SEARCH, it takes an index and a query. Here we use the star symbol to query all items in the index.
+`FT.AGGREGATE` is the command you use to run RediSearch aggregations. Like `FT.SEARCH`, it takes an index and a query. Here we use the star symbol to query all items in the index.
 
 Second: GROUPBY 0
 
@@ -446,7 +446,7 @@ FT.SEARCH books-idx "@categories:{Fiction}" LIMIT 0 0
 
 3. [Grouping Data](https://youtu.be/dPL0sXjCKZU)
 
-Another common use of aggregations is to group results. You do that in Redisearch with the GROUPBY option to the FT.AGGREGATE command. Here, we get all the years in which someone published a book that mentioned Tolkien. Now it's your turn to practice grouping by fields.
+Another common use of aggregations is to group results. You do that in Redisearch with the GROUPBY option to the `FT.AGGREGATE` command. Here, we get all the years in which someone published a book that mentioned Tolkien. Now it's your turn to practice grouping by fields.
 
 4. Aggregating All Items in a Query
 
@@ -527,7 +527,7 @@ We'll also look at how to do query-time boosting, which is a common feature of s
 
 1. [Partial Indexes](https://youtu.be/3LVe51FLDIA)
 
-When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to FT.CREATE command with a `FILTER` like this. Now you can query only checkouts of this book.
+When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to `FT.CREATE` command with a `FILTER` like this. Now you can query only checkouts of this book.
 
 2. Why Do This?
 
@@ -557,7 +557,7 @@ FT.SEARCH books-older-idx * LIMIT 0 0
 FT.SEARCH books-newer-idx * LIMIT 0 0
 ```
 
-Now try creating an index just for books with the “Fiction” category. Note that when filtering during FT.CREATE, you are filtering on the string values in a Hash.
+Now try creating an index just for books with the “Fiction” category. Note that when filtering during `FT.CREATE`, you are filtering on the string values in a Hash.
 ```
 FT.CREATE books-fiction-idx ON HASH PREFIX 1 ru203:book:details: FILTER "@categories=='Fiction'" SCHEMA isbn TAG SORTABLE title TEXT WEIGHT 2.0 SORTABLE subtitle TEXT SORTABLE thumbnail TAG NOINDEX description TEXT SORTABLE published_year NUMERIC SORTABLE average_rating NUMERIC SORTABLE authors TEXT SORTABLE categories TAG SEPARATOR ";" author_ids TAG SEPARATOR ";"
 ```
@@ -628,9 +628,9 @@ Congratulations, you've made it to the last lesson of the course. You've come a 
 
 7. Spellcheck
 
-An alternative approach to handling spelling errors is to use the FT.SPELLCHECK command to return possible correct spellings when you suspect a spelling error.
+An alternative approach to handling spelling errors is to use the `FT.SPELLCHECK` command to return possible correct spellings when you suspect a spelling error.
 
-You might use this when you find zero hits for a user’s query to suggest alternative words the user could try searching for. Or, without asking the user, you could run a second query using the first of the words returned by FT.SPELLCHECK, return the results, and explain that you corrected the user's spelling. The second approach is how most web search engines work.
+You might use this when you find zero hits for a user’s query to suggest alternative words the user could try searching for. Or, without asking the user, you could run a second query using the first of the words returned by `FT.SPELLCHECK`, return the results, and explain that you corrected the user's spelling. The second approach is how most web search engines work.
 
 The following spellcheck query finds all possible correct spellings of the term “wizrds” (notice that it is “wizards” misspelled):
 ```
