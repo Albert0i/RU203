@@ -521,11 +521,13 @@ FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "day(@last_login)"
 
 #### IV. [Advanced Topics](https://youtu.be/k5_q9PBFEmc)
 
-By now you learned how to work with structured and unstructured data. You also know how to use aggregations to build reporting queries like you can with SQL. Now it's time to dig into some advanced topics. We'll talk about how to create partial indexes, which can improve performance if you have a lot of hashes. We'll also look at how to do query-time boosting, which is a common feature of search engines. And we'll cover edge cases, like exact matching punctuation in text fields and how to handle spelling errors in queries. You might not use these techniques very often, but when the need arises, you'll be glad you learned them.
+By now you learned how to work with structured and unstructured data. You also know how to use aggregations to build reporting queries like you can with SQL. Now it's time to dig into some advanced topics. We'll talk about how to create partial indexes, which can improve performance if you have a lot of hashes. 
+
+We'll also look at how to do query-time boosting, which is a common feature of search engines. And we'll cover edge cases, like exact matching punctuation in text fields and how to handle spelling errors in queries. You might not use these techniques very often, but when the need arises, you'll be glad you learned them.
 
 1. [Partial Indexes](https://youtu.be/3LVe51FLDIA)
 
-When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to FT.CREATE command with a filter like this. Now you can query only checkouts of this book.
+When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to FT.CREATE command with a `FILTER` like this. Now you can query only checkouts of this book.
 
 2. Why Do This?
 
@@ -567,14 +569,16 @@ FT.AGGREGATE books-fiction-idx * GROUPBY 1 @authors REDUCE COUNT_DISTINCT 1 @tit
 
 3. [Adjusting the Score of a Term](https://youtu.be/EuHkkpH1-94)
 
-Query-time boosting is a common technique in search engines. Boosting or modifying the score of specific terms in a query allows you to change document scores without re-indexing. With RediSearch, you can do this by changing the weight of a term. This full-text search for Greek mythology boosts the score of books that have an average rating of 4.5 or higher. Let's break this query down a bit more. The query is two clauses, one clause for Greek mythology books with an average rating of 4.5 or higher, and a second clause for all Greek mythology books. Because this query connects both terms with the Boolean OR, the two sets of results are combined. Changing the weight of the books that have an average rating of 4.5 or higher, like we do here, means they will score higher in the results.
+Query-time boosting is a common technique in search engines. Boosting or modifying the score of specific terms in a query allows you to change document scores without re-indexing. With RediSearch, you can do this by changing the `weight` of a term. This full-text search for Greek mythology boosts the score of books that have an average rating of 4.5 or higher. 
+
+Let's break this query down a bit more. The query is two clauses, one clause for Greek mythology books with an average rating of 4.5 or higher, and a second clause for all Greek mythology books. Because this query connects both terms with the Boolean `OR`, the two sets of results are combined. Changing the weight of the books that have an average rating of 4.5 or higher, like we do here, means they will score higher in the results.
 
 Consider this scenario. A user browsing a bookstore's web site clicks on the “History” section and then searches for “greek” books. How might you increase the weight of “greek” books that have the “History” category, while also returning books from other categories?
 ```
 FT.SEARCH books-idx "((@categories:{History}) => { $weight: 10 } greek) | greek"
 ```
 
-This works because of the use of OR binary logic: books that mention “greek” and have the “History” category will score highest, followed by books of any category that mention “greek."
+This works because of the use of `OR` binary logic: books that mention “greek” and have the “History” category will score highest, followed by books of any category that mention “greek."
 
 Another common boost is to score recent documents in an index higher. How might you use the same technique we used for Greek books to score “cowboy” books higher if they were published after the year 2000?
 ```
@@ -592,9 +596,9 @@ FT.SEARCH users-idx *
 
 5. Exact-Matching Punctuation
 
-If the values in a TEXT field will contain punctuation and you want to be able to search for exact matches using that punctuation (e.g., email addresses), you'll need to escape any punctuation in the values when you index. And then when you query, you also need to escape punctuation.
+If the values in a `TEXT` field will contain punctuation and you want to be able to search for exact matches using that punctuation (e.g., email addresses), you'll need to escape any punctuation in the values when you index. And then when you query, you also need to escape punctuation.
 
-As an example, the users-idx index stores email addresses as TEXT fields. When we added the email address that we planned to use as a TEXT field, we escaped all the punctuation, like so:
+As an example, the users-idx index stores email addresses as `TEXT` fields. When we added the email address that we planned to use as a `TEXT` field, we escaped all the punctuation, like so:
 ```
 HMSET ru203:user:details:28 first_name "Kelvin" last_name "Brown" email "k.brown@example.com" escaped_email "k\\.brown\\@example\\.com" user_id "28"
 ```
@@ -608,7 +612,7 @@ If you want to find exact-matches on punctuation, the punctuation you need to es
 
 **,.<>{}[]"':;!@#$%^&*()-+=~**
 
-Try adding a new user and including their email address in the escaped_email field. The users-idx index processes this field as TEXT, which means you need to escape punctuation in the Hash *and* when you query.
+Try adding a new user and including their email address in the escaped_email field. The users-idx index processes this field as `TEXT`, which means you need to escape punctuation in the Hash *and* when you query.
 ```
 HMSET ru203:user:details:1000 first_name "Andrew" last_name "Brookins" escaped_email "a\\.m\\.brookins\\@example\\.com" user_id "1000"
 ```
