@@ -179,10 +179,143 @@ FT.SEARCH books-idx "@categories:{Fantasy}"
 4. [Working with Numbers](https://youtu.be/grBk0_iz-BM)
 
 If you need to query your data by numeric range, use the `NUMERIC` type. In our books index, we store the publication year and average rating as `NUMERIC` fields. You can see what that looks like here. This lets us issue range queries against the average rating and publication year field. Ranges require a start and end value. 
+```
+> FT.SEARCH books-idx "@published_year:[2018 2020]"
+1) "8"
+2) "ru203:book:details:9781406917895"
+3) 1) "authors"
+   2) "Hardpress"
+   3) "isbn"
+   4) "9781406917895"
+   5) "average_rating"
+   6) "3.72"
+   7) "categories"
+   8) "History"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=1q9_yAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "This is a reproduction of the original artefact. Generally these books are created from careful scans of the original. This allows us to preserve the book accurately and present it in the way the author intended. Since the original versions are generally quite old, there may occasionally be certain imperfections within these reproductions. We're happy to make these classics available again for future generations to enjoy!"
+   15) "published_year"
+   16) "2019"
+   17) "author_ids"
+   18) "3711"
+   19) "title"
+   20) "Israel's Shepherd; Or, Thoughts on the Love of God, Manifested in Christ Jesus. in a Series of Letters"
+. . . 
+>
+```
 
-For example, to query for books published between 2018 and 2020, you do this. 2018 is the lower bound, and 2020 is the upper bound on this numeric range. Ranges are inclusive by default. To make a value exclusive, you add a parenthesis like this. You can use positive and negative infinity for unbounded values. For example, this query finds all books published since 2018, inclusive. And this query gets all books published before 1925, inclusive. Now go ahead and try some range queries on your own.
+For example, to query for books published between 2018 and 2020, you do this. 2018 is the lower bound, and 2020 is the upper bound on this numeric range. Ranges are inclusive by default. To make a value exclusive, you add a parenthesis like this. 
+```
+> FT.SEARCH books-idx "@published_year:[2005 (2010]"
+1) "1873"
+2) "ru203:book:details:9780425204191"
+3) 1) "authors"
+   2) "Clive Cussler"
+   3) "isbn"
+   4) "9780425204191"
+   5) "average_rating"
+   6) "3.89"
+   7) "categories"
+   8) "Fiction"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=Pay5bDWJCnAC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "When an enzyme capable of prolonging life is discovered deep beneath the North Atlantic, NUMA Special Assignments Team leader Kurt Austin and his colleague, Joe Zavala, investigate a killer who is targeting the enzyme's harvesters and researchers. Reprint."
+   15) "published_year"
+   16) "2005"
+   17) "author_ids"
+   18) "614"
+   19) "title"
+   20) "Lost City"
+. . . 
+>
+```
 
-Try finding the titles of books with an average rating from 4.5 through 5:
+You can use positive and negative infinity for unbounded values. For example, this query finds all books published since 2018, inclusive. 
+```
+> FT.SEARCH books-idx "@published_year:[2008 +inf]"
+1) "68"
+2) "ru203:book:details:9780552998086"
+3) 1) "isbn"
+   2) "9780552998086"
+   3) "title"
+   4) "THE HOTEL NEW HAMPSHIRE"
+   5) "subtitle"
+   6) ""
+   7) "thumbnail"
+   8) ""
+   9) "description"
+   10) ""
+   11) "categories"
+   12) ""
+   13) "authors"
+   14) "JOHN IRVING"
+   15) "author_ids"
+   16) "2252"
+   17) "published_year"
+   18) "2010"
+   19) "average_rating"
+   20) "3.83"
+4) "ru203:book:details:9781844671083"
+5) 1) "isbn"
+   2) "9781844671083"
+   3) "title"
+   4) "In Defense of Lost Causes"
+   5) "subtitle"
+   6) ""
+   7) "thumbnail"
+   8) "http://books.google.com/books/content?id=VWB0QgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   9) "description"
+   10) "A high-energy philosophical manifesto on the concept and virtues of universal values addresses such topics as Heidegger's engagement with the Third Reich, the role of class struggles in global capitalism, and the legacy of Christianity against New Age spiritualism. Original."
+   11) "categories"
+   12) "Philosophy"
+   13) "authors"
+   14) "Slavoj \xc5\xbdi\xc5\xbeek"
+   15) "author_ids"
+   16) "937"
+   17) "published_year"
+   18) "2008"
+   19) "average_rating"
+   20) "3.89"
+. . . 
+>
+```
+
+And this query gets all books published before 1925, inclusive. 
+```
+> FT.SEARCH books-idx "@published_year:[-inf 1925]"
+1) "8"
+2) "ru203:book:details:9780812234565"
+3) 1) "authors"
+   2) "Smith Palmer Bovie;David R. Slavitt"
+   3) "isbn"
+   4) "9780812234565"
+   5) "average_rating"
+   6) "3.83"
+   7) "categories"
+   8) "Greek drama (Comedy)"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=AaWiwwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) ""
+   15) "published_year"
+   16) "1901"
+   17) "author_ids"
+   18) "3217;3218"
+   19) "title"
+   20) "Aristophanes: The Acharnians"
+. . . 
+>
+```
+
+Now go ahead and try some range queries on your own. Try finding the titles of books with an average rating from 4.5 through 5:
 ```
 FT.SEARCH books-idx "@average_rating:[4.5 5]" RETURN 1 title
 ```
@@ -204,9 +337,32 @@ FT.SEARCH books-idx "@average_rating:[-inf 3] @published_year:[-inf (2000]" RETU
 
 5. [Working with Dates and Times](https://youtu.be/TuWdvZNEsmI)
 
-To work with dates and times in RediSearch, you store them as Unix timestamps in a numeric field. As an example, we'll look at the checkout_date field in our book checkouts index. Here's what that index looks like. You can see that checkout_date is a `NUMERIC` field. And here's what a checkout_date stored as a Unix timestamp looks like in a checkout record. 
+To work with dates and times in RediSearch, you store them as Unix timestamps in a numeric field. As an example, we'll look at the checkout_date field in our book checkouts index. 
+```
+FT.CREATE checkouts-idx 
+ON HASH PREFIX 1 ru203:book:checkout: 
+SCHEMA  user_id TAG SORTABLE 
+        book_isbn TAG SORTABLE 
+        checkout_date NUMERIC SORTABLE 
+        return_date NUMERIC SORTABLE 
+        checkout_period_days NUMERIC SORTABLE 
+        geopoint GEO
+```
 
-Now let's try some queries. First, let's find book checkouts between December 1, 2020, and January 1, 2021. Both dates are inclusive. This timestamp represents 12 AM UTC on December 1. And this one represents 12 AM UTC on January 1. You can also specify unbounded ranges with positive and negative infinity. For example, finding every book checked out since January 1, 2021, looks like this. Now try running a few date queries in this lesson's hands-on.
+Here's what that index looks like. You can see that checkout_date is a `NUMERIC` field. And here's what a checkout_date stored as a Unix timestamp looks like in a checkout record. 
+```
+> HGET ru203:book:checkout:11-9780393059168 checkout_date 
+"1606464000.0"
+> 
+```
+
+Now let's try some queries. First, let's find book checkouts between December 1, 2020, and January 1, 2021. Both dates are inclusive. 
+![alt dates and times 1](img/dates-and-times-1.JPG)
+
+This timestamp represents 12 AM UTC on December 1. And this one represents 12 AM UTC on January 1. You can also specify unbounded ranges with positive and negative infinity. For example, finding every book checked out since January 1, 2021, looks like this. 
+![alt dates and times 3](img/dates-and-times-3.JPG)
+
+Now try running a few date queries in this lesson's hands-on.
 
 Try finding users who have logged in on or after 1:25pm UTC on December 11, 2020:
 ```
