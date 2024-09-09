@@ -378,7 +378,94 @@ You'll have to use a tool like the [UnixTimestampConverter](http://www.unixtimes
 
 6. [Boolean Logic](https://youtu.be/lH8m4bBVg-k)
 
-You can use Boolean logic to express complex queries. Let's look at a few examples. Including more than one term implies a Boolean `AND`. So you'd find books about both wizards and castles like this. You can specify a Boolean `OR` with a pipe symbol. Here's how you find books that are either about dogs or about cats. And if you really don't like cats, you can use the dash symbol for Boolean `NOT`. This query gets rid of those pesky felines. Now you practice issuing some queries with Boolean logic in them. Notice how the syntax changes depending on the type of field you're querying.
+You can use Boolean logic to express complex queries. Let's look at a few examples. 
+```
+> FT.SEARCH books-idx "wizards castles"
+1) "7"
+2) "ru203:book:details:9780739423851"
+3) 1) "authors"
+   2) "Diana Wynne Jones"
+   3) "isbn"
+   4) "9780739423851"
+   5) "average_rating"
+   6) "4.44"
+   7) "categories"
+   8) "Fantasy"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=hB7hAAAAMAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "Howl's moving castle - Eldest of three sisters, in a land where it is considered to be a misfortune, Sophie is resigned to her fate as a hat shop apprentice until a witch turns her into an old woman and she finds herself in the castle of the greatly feared Wizard Howl. Castle in the air - Having long indulged himself in daydreams more exciting than his mundane life as a carpet merchant, Abdullah unexpectedly purchases a magic carpet and his life changes dramatically as his daydreams come true and"
+   15) "published_year"
+   16) "2002"
+   17) "author_ids"
+   18) "40"
+   19) "title"
+   20) "Wizard's Castle"
+. . . 
+>
+```
+
+Including more than one term implies a Boolean `AND`. So you'd find books about both wizards and castles like this. You can specify a Boolean `OR` with a pipe symbol. 
+```
+> FT.SEARCH books-idx "dogs|cats"
+1) "122"
+2) "ru203:book:details:9780752853697"
+3) 1) "authors"
+   2) "Terry Pratchett;Gray Jolliffe"
+   3) "isbn"
+   4) "9780752853697"
+   5) "average_rating"
+   6) "3.83"
+   7) "categories"
+   8) "Cats"
+   9) "subtitle"
+   10) "A Campaign for Real Cats"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=Gb8aHQAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "The Unadulterated Cat is becoming an endangered species as more and more of us settle for those boring mass-produced cats the ad-men sell us - the pussies that purr into their gold-plated food bowls on the telly. But the Campaign for Real Cats sets out to change all that by helping us to recognise a true, unadulterated cat when we see one. For example: real cats have ears that look like they've been trimmed with pinking shears; real cats never wear flea collars . . . or appear on Christmas cards . . . or chase anything with a bell in it; real cats do eat quiche. And giblets. And butter. And anything else left on the table, if they think they can get away with it. Real cats can hear a fridge door opening two rooms away . . ."
+   15) "published_year"
+   16) "2002"
+   17) "author_ids"
+   18) "84;2833"
+   19) "title"
+   20) "The Unadulterated Cat"
+. . .
+>
+```
+
+Here's how you find books that are either about dogs or about cats. And if you really don't like cats, you can use the dash symbol for Boolean `NOT`. 
+```
+> FT.SEARCH books-idx "dogs -cats"
+1) "70"
+2) "ru203:book:details:9780439294843"
+3) 1) "authors"
+   2) "Gordon Korman"
+   3) "isbn"
+   4) "9780439294843"
+   5) "average_rating"
+   6) "3.71"
+   7) "categories"
+   8) "Drama"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=8A1lfv8ETv4C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "For use in schools and libraries only. Truthful Wallace gives a thumbs-down to a book much to the chagrin of his English teacher, who sentences him to help with a stage version of the book. Wallace is unaware that his plot-improvement suggestions will wind up changing the entire production."
+   15) "published_year"
+   16) "2001"
+   17) "author_ids"
+   18) "1809"
+   19) "title"
+   20) "No More Dead Dogs"
+. . . 
+>
+```
+
+This query gets rid of those [pesky](https://dictionary.cambridge.org/dictionary/english-chinese-traditional/pesky) [felines](https://dictionary.cambridge.org/dictionary/english-chinese-traditional/feline?q=felines). Now you practice issuing some queries with Boolean logic in them. Notice how the syntax changes depending on the type of field you're querying.
 
 7. Full-Text Search
 
