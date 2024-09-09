@@ -24,9 +24,111 @@ We're really excited to have you here. Let's get started.
 
 1. [Finding Exact String Matches](https://youtu.be/cRbPtrGtCsM)
 
-If you know that you will only ever query a field for exact string matches, like IDs, categories, or email addresses, then the most efficient field type is `TAG`. To see an example of `TAG` fields, let's take a look at this definition of the index we use for book data. You can see that we've stored several fields as `TAG`s-- isbn, thumbnail, categories, and author IDs. 
+If you know that you will only ever query a field for exact string matches, like IDs, categories, or email addresses, then the most efficient field type is `TAG`. To see an example of `TAG` fields, let's take a look at this definition of the index we use for book data. 
+```
+FT.CREATE books-idx 
+ON HASH PREFIX 1 ru203:book:details: 
+SCHEMA  isbn TAG SORTABLE 
+        title TEXT WEIGHT 2.0 SORTABLE 
+        subtitle TEXT SORTABLE thumbnail TAG NOINDEX 
+        description TEXT SORTABLE 
+        published_year NUMERIC SORTABLE 
+        average_rating NUMERIC SORTABLE 
+        authors TEXT SORTABLE 
+        categories TAG SEPARATOR ";" 
+        author_ids TAG SEPARATOR ";"
+```
 
-Let's see what these values look like in the hash for Neal Stephenson's book, Cryptonomicon. Here are the isbn categories and author ID values. We know that when we search for books by these fields, we're going to use an exact string match, so Tag is the right type for these fields. Now let's try some queries. This query finds the book, The New Annotated Sherlock Holmes, by its isbn. And this query searches for books by J. R. R. Tolkien, the author, with the ID 34. Now, it's your turn to address some queries in our hands-on tutorial.
+You can see that we've stored several fields as `TAG`s-- isbn, thumbnail, categories, and author IDs. Let's see what these values look like in the hash for Neal Stephenson's book, Cryptonomicon. 
+```
+> HMGET ru203:book:details:9780060512804 
+        title isbn author_ids categories 
+1) "Cryptonomicon"
+2) "9780060512804"
+3) "111"
+4) "Fiction"
+>
+```
+
+Here are the isbn categories and author ID values. We know that when we search for books by these fields, we're going to use an exact string match, so Tag is the right type for these fields. Now let's try some queries. 
+```
+> FT.SEARCH books-idx "@isbn:{9780393059168}"
+1) "1"
+2) "ru203:book:details:9780393059168"
+3) 1) "authors"
+   2) "Arthur Conan Doyle"
+   3) "isbn"
+   4) "9780393059168"
+   5) "average_rating"
+   6) "4.63"
+   7) "categories"
+   8) "Detective and mystery stories, English"
+   9) "subtitle"
+   10) "volume 2"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=beGfDAEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "Collects Doyle's fifty-six classic short stories, arranged in the order in which they appeared in late nineteenth- and early twentieth-century book editions, in a set complemented by four novels, editor biographies of Doyle, Holmes, and Watson as well asl"
+   15) "published_year"
+   16) "2005"
+   17) "author_ids"
+   18) "1619"
+   19) "title"
+   20) "The New Annotated Sherlock Holmes"
+>
+```
+
+This query finds the book, The New Annotated Sherlock Holmes, by its isbn. And this query searches for books by J. R. R. Tolkien, the author, with the ID 34. 
+```
+> FT.SEARCH books-idx "@author_ids:{34}"
+1) "35"
+2) "ru203:book:details:9780007149124"
+3) 1) "authors"
+   2) "John Ronald Reuel Tolkien"
+   3) "isbn"
+   4) "9780007149124"
+   5) "average_rating"
+   6) "4.08"
+   7) "categories"
+   8) "Fairy tales, English"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=Wla7NwAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "Never before published in a single volume, Tolkien's four novellas (\"Farmer Giles of Ham, Leaf by Niggle, Smith of Wootton Major,\" and \"Roverandom\") and one book of poems (\"The Adventures of Tom Bombadil\") are gathered together in a fully illustrated set."
+   15) "published_year"
+   16) "2002"
+   17) "author_ids"
+   18) "34"
+   19) "title"
+   20) "Tales from the Perilous Realm"
+4) "ru203:book:details:9780261102200"
+5) 1) "authors"
+   2) "John Ronald Reuel Tolkien;Christopher Tolkien"
+   3) "isbn"
+   4) "9780261102200"
+   5) "average_rating"
+   6) "4.16"
+   7) "categories"
+   8) "English fiction"
+   9) "subtitle"
+   10) "The History of the Lord of the Rings, Part Two"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=Hon4PwAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "Fantasy-roman."
+   15) "published_year"
+   16) "2002"
+   17) "author_ids"
+   18) "34;936"
+   19) "title"
+   20) "The Treason of Isengard"
+. . . 
+>
+```
+
+Now, it's your turn to address some queries in our hands-on tutorial.
 
 2. Field-Specific Searches
 
