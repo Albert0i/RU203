@@ -630,13 +630,61 @@ FT.SEARCH books-idx "@published_year:[2000 +inf]" LIMIT 100 100
 
 We started this course by talking about how to search for structured data, like finding users by ID or email address. This second unit is about searching unstructured data using full-text search. When you perform a full-text search, you may not know the exact value you want to find and the fields you're searching may contain unstructured data, like product descriptions or user reviews. 
 
-In the following lessons, you're going to learn how to perform basic full-text searches, prefix matches, and Boolean queries. You'll also learn a bit about stemming, which is one of the techniques that makes full-text search possible. Let's dive right in.
+In the following lessons, you're going to learn how to perform: 
+- Full-text searches
+- Prefix matches
+- Boolean queries
+- Stemming
+
+Let's dive right in.
 
 1. [Basic Full-Text Search](https://youtu.be/5XLvPmVVH4E)
 
 In this lesson, you learned how to use RediSearch to perform basic full-text searches. Full text search is most useful when you don't know the exact value you want to find or you're searching unstructured data. We're going to try a few queries using our books index. Here's what that index looks like again. 
+```
+FT.CREATE books-idx 
+ON HASH PREFIX 1 ru203:book:details: 
+SCHEMA  isbn TAG SORTABLE 
+        title TEXT WEIGHT 2.0 SORTABLE 
+        subtitle TEXT SORTABLE thumbnail TAG NOINDEX 
+        description TEXT SORTABLE 
+        published_year NUMERIC SORTABLE 
+        average_rating NUMERIC SORTABLE 
+        authors TEXT SORTABLE 
+        categories TAG SEPARATOR ";" 
+        author_ids TAG SEPARATOR ";"
+```
 
-You can see that we've indexed the title, subtitle, and description fields as `TEXT`. This query searches for the terms "Hercule" and "Poirot" in all the text fields in the book's index. So if the words "Hercule" or "Poirot" appear in any `TEXT` field, we'll have a match. Now go ahead and try a few basic full text searches on your own.
+You can see that we've indexed the title, subtitle, and description fields as `TEXT`. This query searches for the terms "Hercule" and "Poirot" in all the text fields in the book's index. 
+```
+> FT.SEARCH books-idx "hercule poirot"
+1) "17"
+2) "ru203:book:details:9781579126285"
+3) 1) "authors"
+   2) "Agatha Christie"
+   3) "isbn"
+   4) "9781579126285"
+   5) "average_rating"
+   6) "3.96"
+   7) "categories"
+   8) "Fiction"
+   9) "subtitle"
+   10) "A Hercule Poirot Mystery"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=aSK_ARf71S0C&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "When a shrewish stage star is found strangled at a posh island resort, detective Hercule Poirot is called in to investigate."
+   15) "published_year"
+   16) "1940"
+   17) "author_ids"
+   18) "3"
+   19) "title"
+   20) "Evil Under the Sun"
+. . . 
+>
+```
+
+So if the words "Hercule" or "Poirot" appear in any `TEXT` field, we'll have a match. Now go ahead and try a few basic full text searches on your own.
 
 2. Stemming
 
@@ -689,9 +737,57 @@ Notice that the results have “unicorn” in their descriptions.
 
 3. [Prefix Matching](https://youtu.be/OHUbm0_3yIg)
 
-RediSearch supports prefix matching. You can provide the first characters of a term, and RediSearch finds documents with any terms that start with those characters. This feature allows you to provide search results as users type. 
+RediSearch supports prefix matching. You can provide the first characters of a term, and RediSearch finds documents with any terms that start with those characters. This feature allows you to provide search results as users type. For example, here we search for documents containing terms that start with 'wiz.' 
+```
+> FT.SEARCH books-idx "wiz*"
+1) "60"
+2) "ru203:book:details:9780739403457"
+3) 1) "authors"
+   2) "Terry Pratchett"
+   3) "isbn"
+   4) "9780739403457"
+   5) "average_rating"
+   6) "4.21"
+   7) "categories"
+   8) "Discworld (Imaginary place)"
+   9) "subtitle"
+   10) "The Colour of Magic ; The Light Fantastic ; Sourcery ; Eric"
+   11) "thumbnail"
+   12) ""
+   13) "description"
+   14) "Includes \"The Colour of Magic\", \"The Light Fantastic\", \"Sourcery\" and \"Eric\"."
+   15) "published_year"
+   16) "1999"
+   17) "author_ids"
+   18) "84"
+   19) "title"
+   20) "Rincewind the Wizzard"
+4) "ru203:book:details:9780553383041"
+5) 1) "authors"
+   2) "Ursula K. Le Guin"
+   3) "isbn"
+   4) "9780553383041"
+   5) "average_rating"
+   6) "4"
+   7) "categories"
+   8) "Fiction"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=hwlCPgAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "A boy grows to manhood while attempting to subdue the evil he unleashed on the world as an apprentice to the Master Wizard."
+   15) "published_year"
+   16) "2004"
+   17) "author_ids"
+   18) "734"
+   19) "title"
+   20) "A Wizard of Earthsea"
+. . . 
+>
+```
 
-For example, here we search for documents containing terms that start with 'wiz.' Be careful, though. The fewer characters you include in a prefix search, the more terms you'll search. With a very large index and a short enough prefix, your queries might be slow. OK, that was a quick overview of prefix matching. Now, it's time to practice a few queries yourself.
+Be careful, though. The fewer characters you include in a prefix search, the more terms you'll search. With a very large index and a short enough prefix, your queries might be slow. OK, that was a quick overview of prefix matching. Now, it's time to practice a few queries yourself.
 
 You can combine a normal full-text term with a prefix term. Try searching for matches with the term “atwood” and the prefix “hand”:
 ```
@@ -705,7 +801,36 @@ FT.SEARCH books-idx "agat* orie*"
 
 4. [Boolean logic, field-specific searches, sorting, and limiting](https://youtu.be/NTGGBQnOqVY)
 
-All the techniques we talked about in unit one of this course for Boolean logic, field-specific searches, sorting, and limiting also work for full-text searches. Let's look at an example that uses a couple of these techniques. In this query, we're looking for all book records that mention wizard, but not Harry. And we're sorting the results by title. Now, you'll get a chance to practice using Boolean logic and other techniques with full-text search yourself.
+All the techniques we talked about in unit one of this course for Boolean logic, field-specific searches, sorting, and limiting also work for full-text searches. Let's look at an example that uses a couple of these techniques. 
+```
+> FT.SEARCH books-idx "wizard -harry" SORTBY "title"
+1) "45"
+2) "ru203:book:details:9780552146081"
+3) 1) "title"
+   2) "A Tourist Guide to Lancre"
+   3) "authors"
+   4) "Terry Pratchett;Stephen Briggs"
+   5) "isbn"
+   6) "9780552146081"
+   7) "average_rating"
+   8) "4.06"
+   9) "categories"
+   10) "Fiction"
+   11) "subtitle"
+   12) ""
+   13) "thumbnail"
+   14) "http://books.google.com/books/content?id=xlMLAAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   15) "description"
+   16) "Not only an artistic and breathtaking view of Lancre but also an interesting and informative guide to one of the Discworld's more, er, picturesque kingdoms. Granny Weatherwax, Nanny Ogg and Magrat Garlick live there. Lancre could hardly be somwhere ordinary, could it? Magic glues the Discworld together and a lot of it ends up in Lancre, principal Kingdom of the Ramtop Mountains. Between Uberwald and Whale Bay, the Octarine Grass Country and the Windersins Ocean lies the most exciting and dangerous terrain in all Discworld. The Ramtops supply Discworld with most of its witches and wizards. The leaves on the trees move even when there is no breeze. Rocks go for a stroll in the evening. Even the land, at times, seems alive. The mapp may be only two-dimensional, but watch it very carefully and you might just see it jostle about a bit."
+   17) "published_year"
+   18) "1998"
+   19) "author_ids"
+   20) "84;2241"
+. . . 
+>
+```
+
+In this query, we're looking for all book records that mention wizard, but not Harry. And we're sorting the results by title. Now, you'll get a chance to practice using Boolean logic and other techniques with full-text search yourself.
 
 Try finding books about dragons that are not also about wizards or magicians!
 ```
@@ -729,9 +854,57 @@ FT.SEARCH books-idx murder sortby published_year limit 0 1
 
 5. [Highlighting and Summarization](https://youtu.be/6M_2QD1jEwI)
 
-When you perform a full-text search, you'll often want to highlight the text and the result that matches the search terms. That's what highlighting is for. When you request highlighting, RediSearch, will surround matching terms and results with an HTML tag. 
+When you perform a full-text search, you'll often want to highlight the text and the result that matches the search terms. That's what highlighting is for. When you request highlighting, RediSearch, will surround matching terms and results with an `HTML` tag. For example, here's how you search for nature and highlight any matches found in a description, title, or subtitle fields. 
+```
+> FT.SEARCH books-idx "nature" HIGHLIGHT FIELDS 3 description title subtitle
+1) "248"
+2) "ru203:book:details:9781416500186"
+3) 1) "description"
+   2) "A Chinese peasant overcomes the forces of nature and the <b>frailties</b> of human nature to <b>become</b> a wealthy landowner."
+   3) "title"
+   4) "The Good Earth"
+   5) "subtitle"
+   6) ""
+   7) "authors"
+   8) "Pearl S. Buck;Stephanie Reents"
+   9) "isbn"
+   10) "9781416500186"
+   11) "average_rating"
+   12) "3.98"
+   13) "categories"
+   14) "Fiction"
+   15) "thumbnail"
+   16) "http://books.google.com/books/content?id=YshbngEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   17) "published_year"
+   18) "2005"
+   19) "author_ids"
+   20) "2732;3726"
+4) "ru203:book:details:9780743272933"
+5) 1) "description"
+   2) "A Chinese peasant overcomes the forces of nature and the <b>frailties</b> of human nature to <b>become</b> a wealthy landowner."
+   3) "title"
+   4) "The Good Earth"
+   5) "subtitle"
+   6) ""
+   7) "authors"
+   8) "Pearl S. Buck"
+   9) "isbn"
+   10) "9780743272933"
+   11) "average_rating"
+   12) "3.98"
+   13) "categories"
+   14) "Fiction"
+   15) "thumbnail"
+   16) "http://books.google.com/books/content?id=U6OgdLXPwvAC&printsec=frontcover&img=1&zoom=1&edge=curl&source=gbs_api"
+   17) "published_year"
+   18) "2004"
+   19) "author_ids"
+   20) "2732"
+. . . 
+>
+```
 
-For example, here's how you search for nature and highlight any matches found in a description, title, or subtitle fields. You can see in this example that RediSearch highlighted nature in the title and description of this book. 
+You can see in this example that RediSearch highlighted nature in the title and description of this book. 
 
 Next, you'll learn about summarization. And then you'll get a chance to try some queries for yourself. After this lesson, you'll have finished your section on full-text search. You'll get to practice what you've learned by taking a few challenges. Remember to refer back to these videos or ask questions in our online chat for guidance. Best of luck! :)
 
