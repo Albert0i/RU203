@@ -518,7 +518,36 @@ FT.SEARCH books-idx "@authors:'Arthur Koestler' | @authors:'Michel Foucault'"
 
 9. [Sorting Results](https://youtu.be/UpCUKPbCn3U)
 
-To sort query results, you first need a `SORTABLE` field in the index. Here's an example from our books index. As you can see, several fields in this index are sortable. This index lets us sort by the title, publication year, average rating and more. Once you have a sortable field, you can sort results by adding this SORTBY option to your query. Here, I'm looking for history books published since 1980, inclusive. I want the results sorted by year of publication, ascending. Now it's your turn to try sorting a few queries in our hands on.
+To sort query results, you first need a `SORTABLE` field in the index. Here's an example from our books index. As you can see, several fields in this index are sortable. This index lets us sort by the title, publication year, average rating and more. Once you have a sortable field, you can sort results by adding this `SORTBY` option to your query. 
+```
+> FT.SEARCH books-idx "@published_year:[1980 +inf] @categories:{history}" SORTBY published_year ASC 
+1) "255"
+2) "ru203:book:details:9780688085872"
+3) 1) "published_year"
+   2) "1980"
+   3) "authors"
+   4) "James L. Stokesbury"
+   5) "isbn"
+   6) "9780688085872"
+   7) "average_rating"
+   8) "3.93"
+   9) "categories"
+   10) "History"
+   11) "subtitle"
+   12) ""
+   13) "thumbnail"
+   14) "http://books.google.com/books/content?id=uDBhlwEACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   15) "description"
+   16) "Despite the numerous books on World War II, until now there has been no one-volume survey that was both objective and comprehensive. Previous volumes have usually been written from an exclusively British or American point of view, or have ignored the important causes and consequences of the War. A Short History of World War II is essentially a military history, but it reaches from the peace settlements of World War I to the drastically altered postwar world of the late 1940's. Lucidly written and eminently readable, it is factual and accurate enough to satisfy professional historians. A Short History of World War II will appeal equally to the general reader, the veteran who fought in the War, and the student interested in understanding the contemporary political world."
+   17) "author_ids"
+   18) "2599"
+   19) "title"
+   20) "A Short History of World War II"
+. . . 
+>
+```
+
+Here, I'm looking for history books published since 1980, inclusive. I want the results sorted by year of publication, ascending. Now it's your turn to try sorting a few queries in our hands on.
 
 10. Descending Sort
 
@@ -543,7 +572,36 @@ FT.SEARCH books-idx "@average_rating:[4.9 5]" SORTBY average_rating DESC
 
 12. [Limiting Results](https://youtu.be/pK5uWyqgcAo)
 
-Let's look at one last feature of basic queries-- how to limit the result set. Use the `LIMIT` option to limit the number of results returned by a query. This option takes two arguments, an offset and a maximum number of results to return in that order. Here, we query for the five highest rated books published in 1955. As you can see, the offset is 0-based. Next up, you'll try a few `LIMIT` queries. Then, you'll tackle some challenges to reinforce what you've learned in this unit. Good luck.
+Let's look at one last feature of basic queries-- how to limit the result set. Use the `LIMIT` option to limit the number of results returned by a query. 
+```
+> FT.SEARCH books-idx "@published_year:[1955 1955]" SORTBY average_rating LIMIT 0 5
+1) "2"
+2) "ru203:book:details:9780143039020"
+3) 1) "average_rating"
+   2) "3.97"
+   3) "authors"
+   4) "Graham Greene;Robert Stone"
+   5) "isbn"
+   6) "9780143039020"
+   7) "categories"
+   8) "Fiction"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=3jwOAQAAMAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "\"Graham Greene centennial, 1904-2004\"--Cover."
+   15) "published_year"
+   16) "1955"
+   17) "author_ids"
+   18) "382;718"
+   19) "title"
+   20) "The quiet American"
+. . . 
+>
+```
+
+This option takes two arguments, an offset and a maximum number of results to return in that order. Here, we query for the five highest rated books published in 1955. As you can see, the offset is 0-based. Next up, you'll try a few `LIMIT` queries. Then, you'll tackle some challenges to reinforce what you've learned in this unit. Good luck.
 
 13. Pagination
 
