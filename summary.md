@@ -1181,13 +1181,20 @@ FT.AGGREGATE users-idx * GROUPBY 2 @last_login @user_id APPLY "day(@last_login)"
 
 #### IV. [Advanced Topics](https://youtu.be/k5_q9PBFEmc)
 
-By now you learned how to work with structured and unstructured data. You also know how to use aggregations to build reporting queries like you can with SQL. Now it's time to dig into some advanced topics. We'll talk about how to create partial indexes, which can improve performance if you have a lot of hashes. 
+By now you learned how to work with structured and unstructured data. You also know how to use aggregations to build reporting queries like you can with `SQL`. Now it's time to dig into some advanced topics. 
 
-We'll also look at how to do query-time boosting, which is a common feature of search engines. And we'll cover edge cases, like exact matching punctuation in text fields and how to handle spelling errors in queries. You might not use these techniques very often, but when the need arises, you'll be glad you learned them.
+We'll talk about how to create partial indexes, which can improve performance if you have a lot of hashes. We'll also look at how to do query-time boosting, which is a common feature of search engines. And we'll cover edge cases, like exact matching punctuation in text fields and how to handle spelling errors in queries. You might not use these techniques very often, but when the need arises, you'll be glad you learned them.
+
+![alt advanced topics](img/Advanced-Topics.JPG)
 
 1. [Partial Indexes](https://youtu.be/3LVe51FLDIA)
 
-When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to `FT.CREATE` command with a `FILTER` like this. Now you can query only checkouts of this book.
+When you create an index in RediSearch, you can specify the hashes of the index based on the data the hashes contain. These indexes work like partial indexes in relational databases. If you wanted to create an index on checkouts of a specific book, you could use to `FT.CREATE` command with a `FILTER` like this. 
+![alt Partial Index](img/Partial-Index.JPG)
+
+Now you can query only checkouts of this book.
+![alt Partial Index Search](img/Partial-Index-search.JPG)
+
 
 2. Why Do This?
 
