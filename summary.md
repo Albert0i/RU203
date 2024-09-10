@@ -1012,9 +1012,14 @@ We'll cover all these features of aggregations in this section. And you'll also 
 
 1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
 
-A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with SELECT COUNT. With RediSearch, you can use the `LIMIT` option to the `FT.SEARCH` command for this. If you specify `LIMIT` 0 0, RediSearch will return the number of documents that match your query, but not the results. 
+A common use of aggregations in relational databases is to find a number of records that match a query without returning the results. With SQL, you do this with `SELECT COUNT`. With RediSearch, you can use the `LIMIT` option to the `FT.SEARCH` command for this. If you specify `LIMIT 0 0`, RediSearch will return the number of documents that match your query, but not the results. For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. 
+```
+> FT.SEARCH books-idx Tolkien LIMIT 0 0 
+1) "72"
+> 
+```
 
-For example, if you want to return the number of books that mention Tolkien, but not the actual results you can do so like this. Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
+Next, you'll learn another way to count query results, this time using aggregations. And then you'll practice a few queries yourself.
 
 2. Counting Query Results with Aggregations
 
@@ -1033,11 +1038,11 @@ First: FT.AGGREGATE books-idx *
 
 Second: GROUPBY 0
 
-Aggregations require a GROUPBY clause to reduce results down to a number using a “reducer” function.
+Aggregations require a `GROUPBY` clause to reduce results down to a number using a “reducer” function.
 
 Finally: REDUCE COUNT 0 AS total
 
-Here, we use the COUNT reducer to count all items in the group, and we name the result “total.”
+Here, we use the `COUNT` reducer to count all items in the group, and we name the result “total.”
 
 Try finding the number of books in the books-idx index with the category “Fiction.” Remember that the “categories” field is a TAG field.
 ```
@@ -1046,7 +1051,21 @@ FT.SEARCH books-idx "@categories:{Fiction}" LIMIT 0 0
 
 3. [Grouping Data](https://youtu.be/dPL0sXjCKZU)
 
-Another common use of aggregations is to group results. You do that in Redisearch with the GROUPBY option to the `FT.AGGREGATE` command. Here, we get all the years in which someone published a book that mentioned Tolkien. Now it's your turn to practice grouping by fields.
+Another common use of aggregations is to group results. You do that in Redisearch with the `GROUPBY` option to the `FT.AGGREGATE` command. Here, we get all the years in which someone published a book that mentioned Tolkien. 
+```
+> FT.AGGREGATE books-idx tolkien GROUPBY 1 @published_year
+1) "22"
+2) 1) "published_year"
+   2) "1986"
+3) 1) "published_year"
+   2) "null"
+4) 1) "published_year"
+   2) "1994"
+. . . 
+>
+```
+
+Now it's your turn to practice grouping by fields.
 
 4. Aggregating All Items in a Query
 
@@ -1069,9 +1088,21 @@ FT.AGGREGATE books-idx python GROUPBY 1 @categories
 
 5. [Sorting](https://youtu.be/o1NawK5KrJA)
 
-You can sort aggregate query results with the `SORTBY` option. This works the same as sorting a non-aggregate query. This query finds the years that someone published a book mentioning Tolkien, sorted by the publication year. Now you try sorting a few aggregate queries.
+You can sort aggregate query results with the `SORTBY` option. This works the same as sorting a non-aggregate query. This query finds the years that someone published a book mentioning Tolkien, sorted by the publication year. 
+```
+> FT.AGGREGATE books-idx tolkien GROUPBY 1 @published_year SORTBY 1 @published_year 
+1) "22"
+2) 1) "published_year"
+   2) "null"
+3) 1) "published_year"
+   2) "1967"
+4) 1) "published_year"
+   2) "1976"
+. . . 
+>
+```
 
-Try finding all users in the users-idx index, grouped by last login date and last name, and then sorted by last name.
+Now you try sorting a few aggregate queries. Try finding all users in the users-idx index, grouped by last login date and last name, and then sorted by last name.
 ```
 FT.AGGREGATE users-idx * GROUPBY 2 @last_login @last_name SORTBY 1 @last_name
 ```
@@ -1083,7 +1114,23 @@ FT.AGGREGATE books-idx "@published_year:[1983 1983]" GROUPBY 2 @authors @title S
 
 6. [Reducing Aggregation Data](https://youtu.be/9YrKDkBFObE)
 
-The point of aggregate queries is usually to calculate some number, like an average or a sum. With RediSearch, you do this with a reducer function. Say you want to count the number of books published each year that mention Tolkien, sorted by year. That query looks like this. The `COUNT` reducer counts the number of records in a group. Next, you'll get a chance to try using reducer functions yourself.
+The point of aggregate queries is usually to calculate some number, like an average or a sum. With RediSearch, you do this with a reducer function. Say you want to count the number of books published each year that mention Tolkien, sorted by year. That query looks like this. 
+```
+> FT.AGGREGATE books-idx tolkien GROUPBY 1 @published_year REDUCE COUNT 0 AS books_published SORTBY 1 @published_year
+1) "22"
+2) 1) "published_year"
+   2) "null"
+   3) "books_published"
+   4) "1"
+3) 1) "published_year"
+   2) "1967"
+   3) "books_published"
+   4) "1"
+. . . 
+>
+```
+
+The `COUNT` reducer counts the number of records in a group. Next, you'll get a chance to try using reducer functions yourself.
 
 Try counting the number of books in each category to see which categories have the most books.
 ```
@@ -1098,6 +1145,19 @@ FT.AGGREGATE books-idx tolkien GROUPBY 0 REDUCE AVG 1 @average_rating as avg_rat
 7. [Transforming Aggregation Data](https://youtu.be/OaJnQ-Fe-BI)
 
 You can use `APPLY` to transform values in the index like converting Unix timestamps to human readable date strings. This query counts the number of book checkouts on each date, but instead of returning Unix time stamps, it returns formatted date strings. 
+```
+> FT.AGGREGATE checkouts-idx * APPLY "timefmt(@checkout_date)" AS checkout_formatted GROUPBY 1 @checkout_formatted REDUCE COUNT 0 AS num_checkouts
+1) "2"
+2) 1) "checkout_formatted"
+   2) "2021-01-01T00:00:00Z"
+   3) "num_checkouts"
+   4) "37"
+3) 1) "checkout_formatted"
+   2) "2020-11-27T08:00:00Z"
+   3) "num_checkouts"
+   4) "12"
+> 
+```
 
 Notice the `timefmt` function here. This converts a timestamp to a date string. Next, you'll see another example of how to use `APPLY` to transform data, and you'll practice a few queries of your own. Then you'll move on to the next section of this course, which will teach you about advanced topics like partial indexes and how to handle spelling errors and queries. Stick around to learn some of RediSearch's deeper mysteries.
 
