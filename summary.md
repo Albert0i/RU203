@@ -997,9 +997,18 @@ FT.SEARCH books-idx shield HIGHLIGHT SUMMARIZE FIELDS 1 description FRAGS 1 LEN 
 
 #### III. [Aggregations](https://youtu.be/P9xU4RKE0vg)
 
-Now that you've learned how to work with structured and unstructured data, we're going to talk about aggregations. You might already be familiar with this topic from relational databases and SQL. But if not, aggregations let you process the results of a query and transform them. So how is this type of query useful? Mainly you'll use aggregations to create analytics reports or build faceted search experiences. 
+Now that you've learned how to work with structured and unstructured data, we're going to talk about aggregations. You might already be familiar with this topic from relational databases and SQL. But if not, *aggregations let you process the results of a query and transform them*. So how is this type of query useful? Mainly you'll use aggregations to create **analytics reports** or build **faceted search** experiences. 
 
-When you build reports, you often need to group query results by a specific field and calculate a number based on data in the field. You might also sort the results or transform the field value somehow, like by turning a Unix timestamp into a date string. We'll cover all these features of aggregations in this section. And you'll also get a chance to try some queries yourself. Let's get started.
+When you build reports, you often need to group query results by a specific field and calculate a number based on data in the field. You might also sort the results or transform the field value somehow, like by turning a Unix timestamp into a date string. 
+
+**AGGREGATION FEATURES**
+
+- Grouping
+- Reducing
+- Sorting
+- Transforming
+
+We'll cover all these features of aggregations in this section. And you'll also get a chance to try some queries yourself. Let's get started.
 
 1. [Counting Query Results](https://youtu.be/vGEXCfKmWiU)
 
