@@ -2,7 +2,12 @@
 
 
 #### Prologue 
-
+```
+窗前雪，關後月，
+十萬征人浴與血，
+出歪種，笑西風，
+獨夫行藏青史說。
+```
 
 #### I. [Querying Structured Data](https://youtu.be/0mqpeQP2sbc)
 
