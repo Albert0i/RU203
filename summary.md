@@ -1,6 +1,9 @@
 ### Summary to RU203 
 
 
+#### Prologue 
+
+
 #### I. [Querying Structured Data](https://youtu.be/0mqpeQP2sbc)
 
 Hello, and welcome to the first unit in our Redis Search course. We're excited to have you here and look forward to learning with you. In this unit, you're going to learn how to query structured data. For example, suppose our user records look like this. 
@@ -1236,7 +1239,8 @@ FT.AGGREGATE books-fiction-idx * GROUPBY 1 @authors REDUCE COUNT_DISTINCT 1 @tit
 
 3. [Adjusting the Score of a Term](https://youtu.be/EuHkkpH1-94)
 
-Query-time boosting is a common technique in search engines. Boosting or modifying the score of specific terms in a query allows you to change document scores without re-indexing. With RediSearch, you can do this by changing the `weight` of a term. This full-text search for Greek mythology boosts the score of books that have an average rating of 4.5 or higher. 
+Query-time boosting is a common technique in search engines. *Boosting or modifying the score of specific terms in a query allows you to change document scores without re-indexing*. With RediSearch, you can do this by changing the `weight` of a term. This full-text search for Greek mythology boosts the score of books that have an average rating of 4.5 or higher. 
+![alt Query Time Boosting](img/QueryTimeBoosting.JPG)
 
 Let's break this query down a bit more. The query is two clauses, one clause for Greek mythology books with an average rating of 4.5 or higher, and a second clause for all Greek mythology books. Because this query connects both terms with the Boolean `OR`, the two sets of results are combined. Changing the weight of the books that have an average rating of 4.5 or higher, like we do here, means they will score higher in the results.
 
@@ -1255,6 +1259,33 @@ FT.SEARCH books-idx "((@published_year:[2000 +inf]) => { $weight: 10 } cowboy) |
 4. [Getting All Documents in an Index](https://youtu.be/WzGKJZ0ysx4)
 
 Wild card queries return all documents in an index. This can be useful when writing aggregations or testing and debugging non-aggregation queries. Take a look at this query that finds all books in books index.
+```
+> FT.SEARCH books-idx * 
+1) "6810"
+2) "ru203:book:details:9780451169518"
+3) 1) "authors"
+   2) "Stephen King"
+   3) "isbn"
+   4) "9780451169518"
+   5) "average_rating"
+   6) "4.23"
+   7) "categories"
+   8) "Fiction"
+   9) "subtitle"
+   10) "A Novel"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=kJtLVMg9_XQC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "A group of teenagers stumbles upon an evil force that will eventually draw them all back to Derry, Maine, for a final showdown. Reissue."
+   15) "published_year"
+   16) "1990"
+   17) "author_ids"
+   18) "1212"
+   19) "title"
+   20) "It"
+. . . 
+>   
+```
 
 Try getting all users in the users-idx index.
 ```
@@ -1291,7 +1322,37 @@ FT.SEARCH users-idx "@escaped_email:a\\.m\\.brookins\\@example\\.com"
 
 6. [Handling Spelling Errors](https://youtu.be/GqlZzQFi5nI)
 
-Congratulations, you've made it to the last lesson of the course. You've come a long way and your efforts should be commended. We've saved the best topic for last: spelling errors. You can use fuzzy matching also known as Levenshtein distance to transparently handle some spelling errors in a query. This query searches for terms similar to the word address misspelled with one d. You can see that Redis search finds matches for the correct spelling of the word.
+Congratulations, you've made it to the last lesson of the course. You've come a long way and your efforts should be commended. We've saved the best topic for last: spelling errors. You can use fuzzy matching also known as [Levenshtein distance](https://en.wikipedia.org/wiki/Levenshtein_distance) to transparently handle some spelling errors in a query.This query searches for terms similar to the word address misspelled with one d. 
+```
+> FT.SEARCH books-idx "%adress%" HIGHLIGHT
+1) "47"
+2) "ru203:book:details:9780142003565"
+3) 1) "authors"
+   2) "Nancy MacDonell Smith;Nancy MacDonell"
+   3) "isbn"
+   4) "9780142003565"
+   5) "average_rating"
+   6) "3.43"
+   7) "categories"
+   8) "Design"
+   9) "subtitle"
+   10) "The True Story of the Little Black <b>Dress</b> and Nine Other Fashion Favorites"
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=MioOctxXKEMC&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) "Discusses the origins, history, and social significance of the little black <b>dress</b>, the white shirt, the cashmere sweater, blue jeans, the suit, high heels, pearls, lipstick, sneakers, and the trench coat."
+   15) "published_year"
+   16) "2003"
+   17) "author_ids"
+   18) "669;670"
+   19) "title"
+   20) "The Classic Ten"
+. . . 
+>
+```
+
+You can see that Redis search finds matches for the correct spelling of the word.
+
 
 7. Spellcheck
 
@@ -1301,18 +1362,112 @@ You might use this when you find zero hits for a user’s query to suggest alter
 
 The following spellcheck query finds all possible correct spellings of the term “wizrds” (notice that it is “wizards” misspelled):
 ```
-FT.SPELLCHECK books-idx wizrds
+> FT.SPELLCHECK books-idx wizrds
+1) 1) "TERM"
+   2) "wizrds"
+   3) 1) 1) "0.0014684287812041115"
+         2) "wizards"
+> 
 ```
 
 Try searching for spell-check suggestions for the term “monter.”
 ```
-FT.SPELLCHECK books-idx monter
+> FT.SPELLCHECK books-idx monter
+1) 1) "TERM"
+   2) "monter"
+   3) 1) 1) "0.004258443465491923"
+         2) "monster"
+      2) 1) "4.405286343612335e-4"
+         2) "monte"
+      3) 1) "1.4684287812041116e-4"
+         2) "montez"
+      4) 1) "1.4684287812041116e-4"
+         2) "monger"
+      5) 1) "1.4684287812041116e-4"
+         2) "mohter"
+> 
 ```
 
 Now try running a fuzzy-matching query to search for documents with similar terms to “monter.”
 ```
-FT.SEARCH books-idx "%monter%"
+> FT.SEARCH books-idx "%monter%"
+1) "35"
+2) "ru203:book:details:9781588467980"
+3) 1) "authors"
+   2) "Monte Cook"
+   3) "isbn"
+   4) "9781588467980"
+   5) "average_rating"
+   6) "4.2"
+   7) "categories"
+   8) "Games"
+   9) "subtitle"
+   10) ""
+   11) "thumbnail"
+   12) "http://books.google.com/books/content?id=Ot17AAAACAAJ&printsec=frontcover&img=1&zoom=1&source=gbs_api"
+   13) "description"
+   14) ""
+   15) "published_year"
+   16) "2005"
+   17) "author_ids"
+   18) "4091"
+   19) "title"
+   20) "Monte Cooks Years Best D20 04"
+. . . 
+>   
 ```
 
+
+#### Epilogue 
+"Levenshtein distance" is a way to measure how different two strings of text are from each other. Imagine you have two words, like "cat" and "bat." Levenshtein distance tells you how many changes you need to make to turn one word into the other.
+
+Here's how it works: 
+
+1. **Insertion:** Adding a letter. For example, changing "cat" to "cart" requires one insertion of the letter 'r'.
+   
+2. **Deletion:** Removing a letter. Changing "cart" to "cat" involves deleting the letter 'r'.
+   
+3. **Substitution:** Swapping one letter for another. Changing "cat" to "bat" involves substituting 'c' with 'b'.
+
+The Levenshtein distance is the minimum number of these operations needed to transform one word into the other. So, for "cat" and "bat," the Levenshtein distance is 1 because you only need to substitute 'c' with 'b' to change one word into the other.
+
+In essence, Levenshtein distance is a simple way to measure how similar or different two strings are by counting the minimum number of single-character edits required to change one into the other.
+
+To implement the Levenshtein distance algorithm in JavaScript, you can create a function that calculates the minimum number of single-character edits required to transform one string into another. Here's a simple implementation for calculating the Levenshtein distance:
+
+```javascript
+function levenshteinDistance(str1, str2) {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    
+    // Create a matrix to store the distances
+    const matrix = Array.from({ length: len1 + 1 }, (_, i) => Array.from({ length: len2 + 1 }, (_, j) => (i === 0 ? j : j === 0 ? i : 0)));
+    
+    for (let i = 1; i <= len1; i++) {
+        for (let j = 1; j <= len2; j++) {
+            const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+            matrix[i][j] = Math.min(
+                matrix[i - 1][j] + 1, // Deletion
+                matrix[i][j - 1] + 1, // Insertion
+                matrix[i - 1][j - 1] + cost // Substitution
+            );
+        }
+    }
+    
+    return matrix[len1][len2];
+}
+
+// Test the function
+const distance = levenshteinDistance("kitten", "sitting");
+console.log(distance); // Output: 3
+```
+
+In this code snippet:
+- The `levenshteinDistance` function takes two input strings, `str1` and `str2`.
+- It initializes a matrix to store the distances between prefixes of the two strings.
+- It iterates over the strings and calculates the Levenshtein distance based on insertions, deletions, and substitutions.
+- Finally, it returns the Levenshtein distance between the two input strings.
+
+You can test this function with different pairs of strings to see how the Levenshtein distance changes based on the input strings.
 
 ### EOF (2024/09/06) 
