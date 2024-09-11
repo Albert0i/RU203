@@ -22,3 +22,5 @@ function levenshteinDistance(str1, str2) {
 // Test the function
 const distance = levenshteinDistance("kitten", "sitting");
 console.log(distance); // Output: 3
+
+console.log(levenshteinDistance("The Adolescent", "Fyodor Dostoevsky")); // Output: 15
